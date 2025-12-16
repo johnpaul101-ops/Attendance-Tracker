@@ -1,33 +1,42 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { LuLayoutDashboard } from "react-icons/lu";
 import { HiOutlineDocumentReport } from "react-icons/hi";
 import { GoChecklist } from "react-icons/go";
 import { useContext } from "react";
 import AttendanceContext from "../contexts/UIContext";
 import { PiStudent } from "react-icons/pi";
+import SignOutButton from "./SignOutButton";
+import { GoHistory } from "react-icons/go";
+
 const Sidebar = () => {
   const links = [
     {
       name: "Dashboard",
-      path: "/",
+      path: "dashboard",
       icon: <LuLayoutDashboard />,
     },
     {
       name: "Students",
-      path: "/students",
+      path: "students",
       icon: <PiStudent />,
     },
     {
       name: "Attendance",
-      path: "/attendance",
+      path: "attendance",
       icon: <GoChecklist />,
     },
     {
       name: "Report",
-      path: "/report",
+      path: "report",
       icon: <HiOutlineDocumentReport />,
     },
+    {
+      name: "Attendance History",
+      path: "attendance-history",
+      icon: <GoHistory />,
+    },
   ];
+  const { sectionId } = useParams();
   const location = useLocation();
   const { toggleSidebar, setToggleSidebar } = useContext(AttendanceContext);
 
@@ -40,7 +49,7 @@ const Sidebar = () => {
               to={link.path}
               key={link.name}
               className={`flex gap-3.5 items-center text-xl ${
-                link.path === location.pathname
+                `/sections/${sectionId}/${link.path}` === location.pathname
                   ? "bg-green-400 text-white shadow-none"
                   : "bg-white text-zinc-400"
               } py-4 pl-8 rounded-br-xl rounded-tr-xl shadow-md hover:bg-green-400 hover:text-white hover:shadow-none transition-all duration-200 ease-in-out`}
@@ -55,13 +64,13 @@ const Sidebar = () => {
       {/* Mobile Screen Sidebar */}
       <div
         className={`w-screen h-screen bg-black/50 absolute 
-        ${toggleSidebar ? "block" : "hidden"} lg:hidden`}
+        ${toggleSidebar ? "block" : "hidden"} lg:hidden z-20`}
         onClick={() => setToggleSidebar(false)}
       ></div>
       <div
         className={`absolute top-0 transition-all duration-200 ease-in-out ${
           toggleSidebar ? "right-0" : "right-[-1000px]"
-        } bg-white lg:hidden h-screen w-80`}
+        } bg-white lg:hidden h-screen w-80 z-50`}
       >
         <ul className="flex flex-col gap-3 w-full">
           {links.map((link) => (
@@ -69,7 +78,7 @@ const Sidebar = () => {
               to={link.path}
               key={link.name}
               className={`flex gap-3.5 items-center text-x ${
-                link.path === location.pathname
+                `/sections/${sectionId}/${link.path}` === location.pathname
                   ? "bg-green-400 text-white"
                   : "bg-white text-zinc-400"
               } py-4 pl-8 rounded-br-xl rounded-tr-xl shadow-md`}
@@ -79,6 +88,7 @@ const Sidebar = () => {
               {link.name}
             </Link>
           ))}
+          <SignOutButton />
         </ul>
       </div>
     </>

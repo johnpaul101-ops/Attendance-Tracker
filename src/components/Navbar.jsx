@@ -4,6 +4,7 @@ import { HiOutlineXMark } from "react-icons/hi2";
 import { useContext } from "react";
 import AttendanceContext from "../contexts/UIContext";
 import SearchInput from "./SearchInput";
+import SignOutButton from "./SignOutButton";
 
 const Navbar = () => {
   const { toggleSidebar, setToggleSidebar, expandSearch, setExpandSearch } =
@@ -25,6 +26,7 @@ const Navbar = () => {
 
         <SearchInput isMobile={false} />
       </div>
+      <SignOutButton isHidden={true} />
 
       {/* Mobile Screen Navbar*/}
       <div

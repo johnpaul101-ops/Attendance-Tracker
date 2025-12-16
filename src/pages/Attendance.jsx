@@ -1,44 +1,114 @@
 import { useContext, useEffect } from "react";
 import AddStudentContext from "../contexts/AddStudentContext";
-import moment from "moment/moment";
 import AttendanceContext from "../contexts/UIContext";
-
+import { collection, doc, getDocs, updateDoc } from "firebase/firestore";
+import { useParams } from "react-router-dom";
+import AuthContext from "../contexts/AuthContext";
+import { db } from "../config/firebase";
+import moment from "moment/moment";
 const Attendance = () => {
-  const { setStudentInfo, filteredList } = useContext(AddStudentContext);
+  const { getFilteredListData } = useContext(AddStudentContext);
   const { time } = useContext(AttendanceContext);
-  const handleStatusChange = (id, newStatus) => {
-    setStudentInfo((prevInfo) =>
-      prevInfo.map((info) =>
-        info.id === id ? { ...info, status: newStatus, time: time } : info
-      )
+  const { sectionId } = useParams();
+  const { user } = useContext(AuthContext);
+  let filteredList = getFilteredListData(sectionId);
+
+  filteredList.sort((a, b) => a.lastName.localeCompare(b.lastName));
+  const handleStatusChange = async (id, newStatus, newTime) => {
+    try {
+      await updateDoc(
+        doc(db, "users", user.uid, "sections", sectionId, "students", id),
+        {
+          status: newStatus,
+          time: newTime,
+        }
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const markLateStudents = async (sectionId) => {
+    const studentsCol = collection(
+      db,
+      "users",
+      user.uid,
+      "sections",
+      sectionId,
+      "students"
     );
+
+    const snapshot = await getDocs(studentsCol);
+
+    const now = moment();
+    const cutoff = moment().hour(7).minute(10).second(0);
+
+    snapshot.docs.forEach(async (studentDoc) => {
+      const data = studentDoc.data();
+
+      if (data.status === "none" && now.isAfter(cutoff)) {
+        await updateDoc(
+          doc(
+            db,
+            "users",
+            user.uid,
+            "sections",
+            sectionId,
+            "students",
+            studentDoc.id
+          ),
+          { status: "late", time }
+        );
+      }
+    });
+  };
+
+  const resetAttendance = async (sectionId, user, db) => {
+    const studentsRef = collection(
+      db,
+      "users",
+      user.uid,
+      "sections",
+      sectionId,
+      "students"
+    );
+
+    const snapshot = await getDocs(studentsRef);
+    const today = moment().format("YYYY-MM-DD");
+
+    for (const studentDoc of snapshot.docs) {
+      const data = studentDoc.data();
+
+      if (data.lastUpdated !== today) {
+        await updateDoc(
+          doc(
+            db,
+            "users",
+            user.uid,
+            "sections",
+            sectionId,
+            "students",
+            studentDoc.id
+          ),
+          {
+            status: "none",
+            lastUpdated: today,
+          }
+        );
+      }
+    }
   };
 
   useEffect(() => {
+    resetAttendance(sectionId, user, db);
     const interval = setInterval(() => {
-      const now = moment();
-      const lateTime = moment().hour(7).minute(10).second(0);
-      const resetTime = moment().hour(24).minute(59).second(59);
-
-      setStudentInfo((prev) =>
-        prev.map((student) => {
-          if (student.status === "none") {
-            if (now.isAfter(lateTime)) {
-              return { ...student, status: "late" };
-            }
-          }
-
-          if (now.isAfter(resetTime)) {
-            return { ...student, status: "none" };
-          }
-          return student;
-        })
-      );
+      markLateStudents(sectionId);
     }, 1000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
-
   return (
     <div className="bg-white shadow-md rounded-xl p-3 md:p-6 w-full lg:w-[70%] flex flex-col min-h-screen">
       <table>
@@ -61,45 +131,43 @@ const Attendance = () => {
         </thead>
 
         <tbody>
-          {filteredList.map(
-            ({ id, name, lastName, middleName, status, time }) => (
-              <tr className="border-b border-b-zinc-300" key={id}>
-                <td className="py-3 font-body-text text-zinc-600 lg:text-[16px] w-[60%]">
-                  {lastName}, {name} {middleName}
-                </td>
+          {filteredList.map(({ id, name, lastName, middleName, status }) => (
+            <tr className="border-b border-b-zinc-300" key={id}>
+              <td className="py-3 font-body-text text-zinc-600 lg:text-[16px] w-[60%] capitalize">
+                {lastName}, {name} {middleName}
+              </td>
 
-                <td className="py-3 text-center">
-                  <input
-                    type="radio"
-                    name={`status_${id}`}
-                    checked={status === "present"}
-                    className="size-6 bg-green-300"
-                    onChange={() => handleStatusChange(id, "present")}
-                  />
-                </td>
+              <td className="py-3 text-center">
+                <input
+                  type="radio"
+                  name={`status_${id}`}
+                  checked={status === "present"}
+                  className="size-6 bg-green-300"
+                  onChange={() => handleStatusChange(id, "present", time)}
+                />
+              </td>
 
-                <td className="py-3 text-center">
-                  <input
-                    type="radio"
-                    name={`status_${id}`}
-                    checked={status === "late"}
-                    className="size-6 bg-green-300"
-                    onChange={() => handleStatusChange(id, "late")}
-                  />
-                </td>
+              <td className="py-3 text-center">
+                <input
+                  type="radio"
+                  name={`status_${id}`}
+                  checked={status === "late"}
+                  className="size-6 bg-green-300"
+                  onChange={() => handleStatusChange(id, "late", time)}
+                />
+              </td>
 
-                <td className="py-3 text-center">
-                  <input
-                    type="radio"
-                    name={`status_${id}`}
-                    checked={status === "absent"}
-                    className="size-6 bg-green-300"
-                    onChange={() => handleStatusChange(id, "absent")}
-                  />
-                </td>
-              </tr>
-            )
-          )}
+              <td className="py-3 text-center">
+                <input
+                  type="radio"
+                  name={`status_${id}`}
+                  checked={status === "absent"}
+                  className="size-6 bg-green-300"
+                  onChange={() => handleStatusChange(id, "absent", time)}
+                />
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>

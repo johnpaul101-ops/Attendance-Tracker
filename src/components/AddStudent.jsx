@@ -1,29 +1,42 @@
 import StudentInfoInput from "../components/StudentInfoInput";
 import Button from "../components/Button";
 import { useContext, useState } from "react";
-import AddStudentContext from "../contexts/AddStudentContext";
-import moment from "moment";
+
+import { addDoc, collection } from "firebase/firestore";
+import AuthContext from "../contexts/AuthContext";
+import { db } from "../config/firebase";
+import { useParams } from "react-router-dom";
+
 const AddStudent = () => {
-  const { setStudentInfo } = useContext(AddStudentContext);
   const [studentName, setStudentName] = useState("");
   const [studentLastName, setStudentLastName] = useState("");
   const [studentMiddleName, setStudentMiddleName] = useState("");
-
   const [studentGender, setStudentGender] = useState("");
+  const { sectionId } = useParams();
+  const { user } = useContext(AuthContext);
+  let collectionRef = collection(
+    db,
+    "users",
+    user.uid,
+    "sections",
+    sectionId,
+    "students"
+  );
 
-  const handleAddStudent = () => {
-    const newStudentInfo = {
-      id: Date.now(),
-      name: studentName,
-      lastName: studentLastName,
-      middleName: studentMiddleName,
-      gender: studentGender,
-      status: "none",
-      time: "",
-    };
+  const handleAddStudent = async () => {
+    if (!studentName || !studentLastName || !studentGender) return;
 
-    if (studentName && studentLastName && studentGender) {
-      setStudentInfo((prev) => [...prev, newStudentInfo]);
+    try {
+      await addDoc(collectionRef, {
+        name: studentName,
+        middleName: studentMiddleName,
+        lastName: studentLastName,
+        gender: studentGender,
+        status: "none",
+      });
+    } catch (error) {
+      console.error(error);
+    } finally {
       setStudentName("");
       setStudentLastName("");
       setStudentMiddleName("");

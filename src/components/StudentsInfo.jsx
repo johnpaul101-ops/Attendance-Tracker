@@ -1,21 +1,26 @@
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import AddStudentContext from "../contexts/AddStudentContext";
 import { HiOutlineXMark } from "react-icons/hi2";
+import { doc, deleteDoc } from "firebase/firestore";
+import { db } from "../config/firebase";
+import AuthContext from "../contexts/AuthContext";
+
+import { useParams } from "react-router-dom";
 const StudentsInfo = () => {
-  const {
-    studentInfo,
-    setStudentInfo,
-    searchInput,
-    filteredList,
-    setfilteredList,
-  } = useContext(AddStudentContext);
+  const { getFilteredListData, getStudentBySection } =
+    useContext(AddStudentContext);
+  const { user } = useContext(AuthContext);
+  const { sectionId } = useParams();
+  let students = getStudentBySection(sectionId);
 
-  studentInfo.sort((a, b) => a.lastName.localeCompare(b.lastName));
+  students.sort((a, b) => a.lastName.localeCompare(b.lastName));
+  let filteredList = getFilteredListData(sectionId);
 
-  const handleRemoveStudent = (id, name) => {
+  const handleRemoveStudent = async (id, name) => {
     if (confirm(`Are you sure you want to remove ${name} in this list?`)) {
-      const removeStudent = studentInfo.filter((student) => student.id !== id);
-      setStudentInfo(removeStudent);
+      await deleteDoc(
+        doc(db, "users", user.uid, "sections", sectionId, "students", id)
+      );
     }
   };
 
@@ -32,7 +37,7 @@ const StudentsInfo = () => {
         </thead>
 
         <tbody>
-          {filteredList.map(({ id, name, lastName, middleName, gender }) => (
+          {filteredList?.map(({ name, middleName, lastName, gender, id }) => (
             <tr className="border-b border-b-zinc-300" key={id}>
               <td className="py-3 text-sm md:text-[1rem] text-zinc-600 capitalize">
                 {lastName}, {name} {middleName}

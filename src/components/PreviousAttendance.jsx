@@ -9,6 +9,7 @@ const PreviousAttendance = () => {
   const [prevAttendance, setPrevAttendance] = useState([]);
   const { sectionId, attendanceId } = useParams();
   const { user } = useContext(AuthContext);
+
   useEffect(() => {
     if (!user || !sectionId || !attendanceId) return;
 

@@ -33,6 +33,7 @@ const AttendanceHistory = () => {
 
     return unsubscribe;
   }, [sectionId]);
+
   const handleRemovePrevAttendance = async (id) => {
     await deleteDoc(
       doc(db, "users", user.uid, "sections", sectionId, "attendance", id)

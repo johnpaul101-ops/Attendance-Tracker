@@ -3,6 +3,7 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import {
   initializeFirestore,
   CACHE_SIZE_UNLIMITED,
+  memoryLocalCache,
   persistentLocalCache,
 } from "firebase/firestore";
 const firebaseConfig = {
@@ -19,7 +20,20 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
-export const db = initializeFirestore(app, {
-  localCache: persistentLocalCache(),
-  sizeBytes: CACHE_SIZE_UNLIMITED,
-});
+export const db = (() => {
+  try {
+    return initializeFirestore(app, {
+      localCache: persistentLocalCache(), // enable offline persistence
+      sizeBytes: CACHE_SIZE_UNLIMITED,
+    });
+  } catch (err) {
+    console.warn(
+      "Persistence conflict detected, falling back to memory cache:",
+      err.message
+    );
+    return initializeFirestore(app, {
+      localCache: memoryLocalCache(), // memory-only fallback
+      sizeBytes: CACHE_SIZE_UNLIMITED,
+    });
+  }
+})();

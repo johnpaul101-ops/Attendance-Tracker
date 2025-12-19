@@ -6,7 +6,6 @@ const SignOutButton = ({ isHidden }) => {
   let navigate = useNavigate();
   const handleLogOutUser = async () => {
     await signOut(auth);
-    localStorage.removeItem("userData");
     navigate("/login");
     setToggleSidebar(false);
   };

@@ -30,13 +30,7 @@ export const AuthContextProvider = ({ children }) => {
         const userRef = doc(db, "users", currentUser.uid);
         const userDoc = await getDoc(userRef);
 
-        const userData = {
-          uid: currentUser.uid,
-          email: currentUser.email,
-          displayName: currentUser.displayName,
-        };
         setUser(currentUser);
-        localStorage.setItem("userData", JSON.stringify(userData));
 
         if (!userDoc.exists()) {
           await setDoc(userRef, {

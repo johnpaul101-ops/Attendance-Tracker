@@ -79,8 +79,6 @@ const Print = ({ students, adviserName, buttonHidden }) => {
   let male = students.filter((student) => student.gender === "male");
   let female = students.filter((student) => student.gender === "female");
 
-  console.log(male);
-  console.log(female);
   return (
     <>
       <div className="bg-white w-full lg:w-[80%] min-h-screen p-4 lg:p-7 rounded-lg shadow-md relative print:hidden flex flex-col gap-3.5">

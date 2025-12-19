@@ -6,10 +6,7 @@ import { db } from "../config/firebase";
 export const AddStudentContext = createContext();
 
 export const AddStudentContextProvider = ({ children }) => {
-  const [studentInfo, setStudentInfo] = useState(() => {
-    const savedDataInLocalStorage = localStorage.getItem("studentData");
-    return savedDataInLocalStorage ? JSON.parse(savedDataInLocalStorage) : {};
-  });
+  const [studentInfo, setStudentInfo] = useState();
   const [searchInput, setSearchInput] = useState("");
   const [currentSection, setCurrentSection] = useState("");
   // State Contexts
@@ -42,10 +39,6 @@ export const AddStudentContextProvider = ({ children }) => {
 
     return unsubscribe;
   }, [user, currentSection]);
-
-  useEffect(() => {
-    localStorage.setItem("studentData", JSON.stringify(studentInfo));
-  }, [studentInfo]);
 
   const getFilteredListData = (sectionId) => {
     const students = getStudentBySection(sectionId);

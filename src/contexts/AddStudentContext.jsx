@@ -6,7 +6,7 @@ import { db } from "../config/firebase";
 export const AddStudentContext = createContext();
 
 export const AddStudentContextProvider = ({ children }) => {
-  const [studentInfo, setStudentInfo] = useState();
+  const [studentInfo, setStudentInfo] = useState({});
   const [searchInput, setSearchInput] = useState("");
   const [currentSection, setCurrentSection] = useState("");
   // State Contexts

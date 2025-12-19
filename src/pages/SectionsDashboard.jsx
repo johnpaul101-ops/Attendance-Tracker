@@ -31,7 +31,7 @@ const SectionsDashboard = () => {
       setSections(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
     );
 
-    return unsubscribe;
+    return () => unsubscribe();
   }, [user]);
 
   const handleAddSection = async () => {

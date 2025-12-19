@@ -6,11 +6,12 @@ import { useParams } from "react-router-dom";
 import AuthContext from "../contexts/AuthContext";
 import { db } from "../config/firebase";
 import moment from "moment/moment";
+import Loading from "../components/Loading";
 const Attendance = () => {
   const { getFilteredListData } = useContext(AddStudentContext);
   const { time } = useContext(AttendanceContext);
   const { sectionId } = useParams();
-  const { user } = useContext(AuthContext);
+  const { user, isLoading } = useContext(AuthContext);
   let filteredList = getFilteredListData(sectionId);
 
   filteredList.sort((a, b) => a.lastName.localeCompare(b.lastName));
@@ -109,8 +110,10 @@ const Attendance = () => {
       clearInterval(interval);
     };
   }, []);
+
   return (
     <div className="bg-white shadow-md rounded-xl p-3 md:p-6 w-full lg:w-[70%] flex flex-col min-h-screen">
+      {isLoading ? <Loading /> : ""}
       <table>
         <thead>
           <tr className="border-b border-b-zinc-300">

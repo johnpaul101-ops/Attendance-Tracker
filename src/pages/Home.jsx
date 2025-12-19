@@ -21,9 +21,11 @@ const Home = () => {
     setCurrentSection,
   } = useContext(AddStudentContext);
   const { sectionId } = useParams();
+
   useEffect(() => {
     setCurrentSection(sectionId);
   }, [sectionId]);
+
   let navigate = useNavigate();
 
   const handleGoBackToMainDashboard = () => {

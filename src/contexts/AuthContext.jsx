@@ -26,25 +26,29 @@ export const AuthContextProvider = ({ children }) => {
   };
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        const userRef = doc(db, "users", currentUser.uid);
-        const userDoc = await getDoc(userRef);
+      try {
+        if (currentUser) {
+          const userRef = doc(db, "users", currentUser.uid);
+          const userDoc = await getDoc(userRef);
 
-        setUser(currentUser);
+          setUser(currentUser);
 
-        if (!userDoc.exists()) {
-          await setDoc(userRef, {
-            id: currentUser.uid,
-            email: currentUser.email,
-            name: currentUser.displayName || "",
-            createdAt: serverTimestamp(),
-          });
+          if (!userDoc.exists()) {
+            await setDoc(userRef, {
+              id: currentUser.uid,
+              email: currentUser.email,
+              name: currentUser.displayName || "",
+              createdAt: serverTimestamp(),
+            });
+          }
         }
+        setIsLoading(false);
+      } catch (error) {
+        console.error(error.message);
       }
-      setIsLoading(false);
     });
 
-    return unsubscribe;
+    return () => unsubscribe();
   }, []);
 
   return (

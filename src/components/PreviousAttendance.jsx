@@ -22,13 +22,14 @@ const PreviousAttendance = () => {
       "attendance",
       attendanceId
     );
+
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         setPrevAttendance(docSnap.data());
       }
     });
 
-    return unsubscribe;
+    return () => unsubscribe();
   }, [user, sectionId, attendanceId]);
 
   return <Print buttonHidden={true} students={prevAttendance.students || []} />;

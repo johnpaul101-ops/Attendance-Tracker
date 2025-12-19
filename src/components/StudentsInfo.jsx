@@ -4,7 +4,6 @@ import { HiOutlineXMark } from "react-icons/hi2";
 import { doc, deleteDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
 import AuthContext from "../contexts/AuthContext";
-
 import { useParams } from "react-router-dom";
 const StudentsInfo = () => {
   const { getFilteredListData, getStudentBySection } =

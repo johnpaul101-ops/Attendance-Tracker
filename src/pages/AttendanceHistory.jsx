@@ -31,8 +31,8 @@ const AttendanceHistory = () => {
       );
     });
 
-    return unsubscribe;
-  }, [sectionId]);
+    return () => unsubscribe();
+  }, [user, sectionId]);
 
   const handleRemovePrevAttendance = async (id) => {
     await deleteDoc(

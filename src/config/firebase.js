@@ -23,7 +23,7 @@ export const googleProvider = new GoogleAuthProvider();
 export const db = (() => {
   try {
     return initializeFirestore(app, {
-      localCache: persistentLocalCache(), // enable offline persistence
+      localCache: persistentLocalCache(),
       sizeBytes: CACHE_SIZE_UNLIMITED,
     });
   } catch (err) {
@@ -32,7 +32,7 @@ export const db = (() => {
       err.message
     );
     return initializeFirestore(app, {
-      localCache: memoryLocalCache(), // memory-only fallback
+      localCache: memoryLocalCache(),
       sizeBytes: CACHE_SIZE_UNLIMITED,
     });
   }

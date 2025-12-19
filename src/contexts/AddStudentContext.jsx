@@ -1,21 +1,29 @@
 import { createContext, useState, useEffect, useContext } from "react";
 import AuthContext from "./AuthContext";
-import { collection, doc, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../config/firebase";
-
 export const AddStudentContext = createContext();
 
 export const AddStudentContextProvider = ({ children }) => {
   const [studentInfo, setStudentInfo] = useState({});
   const [searchInput, setSearchInput] = useState("");
-  const [currentSection, setCurrentSection] = useState("");
+  const [currentSection, setCurrentSection] = useState(() => {
+    const data = localStorage.getItem("currentSection");
+    return data ? JSON.parse(data) : "";
+  });
   // State Contexts
 
-  const { user } = useContext(AuthContext);
+  const { user, setIsLoading } = useContext(AuthContext);
   const getStudentBySection = (sectionId) => {
     return studentInfo[sectionId] || [];
   };
-  let studentsPerSection = getStudentBySection(currentSection);
+  let studentsPerSection = getStudentBySection(currentSection) || [];
+
+  useEffect(() => {
+    if (currentSection) {
+      localStorage.setItem("currentSection", JSON.stringify(currentSection));
+    }
+  }, [currentSection]);
 
   useEffect(() => {
     if (!user || !currentSection) return;
@@ -35,9 +43,10 @@ export const AddStudentContextProvider = ({ children }) => {
           ...doc.data(),
         })),
       }));
+      setIsLoading(false);
     });
 
-    return unsubscribe;
+    return () => unsubscribe();
   }, [user, currentSection]);
 
   const getFilteredListData = (sectionId) => {

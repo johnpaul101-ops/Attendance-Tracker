@@ -1,7 +1,6 @@
 import StudentInfoInput from "../components/StudentInfoInput";
 import Button from "../components/Button";
 import { useContext, useState } from "react";
-
 import { addDoc, collection } from "firebase/firestore";
 import AuthContext from "../contexts/AuthContext";
 import { db } from "../config/firebase";
@@ -13,7 +12,7 @@ const AddStudent = () => {
   const [studentMiddleName, setStudentMiddleName] = useState("");
   const [studentGender, setStudentGender] = useState("");
   const { sectionId } = useParams();
-  const { user } = useContext(AuthContext);
+  const { user, setIsLoading } = useContext(AuthContext);
   let collectionRef = collection(
     db,
     "users",
@@ -41,6 +40,7 @@ const AddStudent = () => {
       setStudentLastName("");
       setStudentMiddleName("");
       setStudentGender("");
+      setIsLoading(false);
     }
   };
 

@@ -1,32 +1,87 @@
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { FaRegFileExcel } from "react-icons/fa";
-import Button from "../components/Button";
 import moment from "moment/moment";
 import { IoIosPrint } from "react-icons/io";
 import { useParams } from "react-router-dom";
 import * as XLSX from "xlsx";
-import { addDoc, collection } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../config/firebase";
 import AuthContext from "../contexts/AuthContext";
 import AddStudentContext from "../contexts/AddStudentContext";
-const Print = ({ students, buttonHidden }) => {
+const WeeklyReport = () => {
   const { user, sections } = useContext(AuthContext);
   const { sectionId } = useParams();
   let date = moment().format("MMMM Do YYYY");
-  const { adviserName } = useContext(AddStudentContext);
+  const [weeklyDocs, setWeeklyDocs] = useState([]);
   const currentSection = sections.filter((section) => section.id === sectionId);
-  let male = students.filter((student) => student.gender === "male");
-  let female = students.filter((student) => student.gender === "female");
+  const { adviserName } = useContext(AddStudentContext);
+  useEffect(() => {
+    if (!user || !sectionId) return;
 
-  const formatStudentForExcel = students.map((student) => ({
+    let collectionRef = collection(
+      db,
+      "users",
+      user.uid,
+      "sections",
+      sectionId,
+      "attendance"
+    );
+
+    const unsubscribe = onSnapshot(collectionRef, (snapshot) => {
+      const currentWeekDocs = snapshot.docs.map((doc) => ({
+        ...doc.data(),
+      }));
+
+      const startOfWeek = moment().startOf("week").add(1, "day");
+      const endOfWeek = moment().startOf("week").add(6, "day");
+
+      const filteredDocs = currentWeekDocs.filter((doc) => {
+        const attendanceDate = moment(doc.createdAt);
+
+        return (
+          attendanceDate.isSameOrAfter(startOfWeek) &&
+          attendanceDate.isSameOrBefore(endOfWeek)
+        );
+      });
+      setWeeklyDocs(filteredDocs);
+    });
+
+    return () => unsubscribe();
+  }, [user, sectionId]);
+
+  let getAllstudents = weeklyDocs.flatMap((doc) => doc.students);
+
+  let students = {};
+
+  getAllstudents.forEach((student) => {
+    if (!students[student.id]) {
+      students[student.id] = {
+        ...student,
+        present: 0,
+        late: 0,
+        absent: 0,
+      };
+    }
+
+    if (student.status === "present") students[student.id].present++;
+    if (student.status === "late") students[student.id].late++;
+    if (student.status === "absent") students[student.id].absent++;
+  });
+
+  let weeklySummary = Object.values(students);
+
+  let male = weeklySummary.filter((stud) => stud.gender === "male");
+  let female = weeklySummary.filter((stud) => stud.gender === "female");
+
+  const formatStudentForExcel = weeklySummary.map((student) => ({
     id: student.id,
     lastName: student.lastName,
     name: student.name,
     middleName: student.middleName,
     gender: student.gender,
-    status: student.status,
-    time: student.time,
-    lastUpdated: student.lastUpdated,
+    present: student.present,
+    late: student.late,
+    absent: student.absent,
   }));
 
   const exportToExcel = () => {
@@ -52,9 +107,9 @@ const Print = ({ students, buttonHidden }) => {
           "Name",
           "Middle Name",
           "Gender",
-          "Status",
-          "Time",
-          "Last Updated",
+          "Present",
+          "Late",
+          "Absent",
         ],
       ],
       { origin: "A1" }
@@ -65,24 +120,8 @@ const Print = ({ students, buttonHidden }) => {
       wb,
       `${currentSection.map(
         (section) => section.sectionName
-      )} Daily Attendance.xlsx`
+      )} Weekly Attendance Report.xlsx`
     );
-  };
-
-  const saveAttendance = async () => {
-    const collectionRef = collection(
-      db,
-      "users",
-      user.uid,
-      "sections",
-      sectionId,
-      "attendance"
-    );
-
-    await addDoc(collectionRef, {
-      students: [...students],
-      createdAt: moment().format("YYYY-MM-DD"),
-    });
   };
 
   return (
@@ -126,26 +165,35 @@ const Print = ({ students, buttonHidden }) => {
                   Name
                 </td>
                 <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
-                  Status
+                  Present
                 </td>
                 <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
-                  Time
+                  Late
+                </td>
+                <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
+                  Absent
                 </td>
               </tr>
             </thead>
             <tbody>
               {male?.map(
-                ({ id, name, lastName, middleName, status, time }, i) => (
+                (
+                  { id, name, lastName, middleName, present, late, absent },
+                  i
+                ) => (
                   <tr className="border-b border-b-zinc-300" key={id}>
                     <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
                     <td className="text-lg py-3 w-96 text-center uppercase">
                       {`${lastName}, ${name} ${middleName}`}
                     </td>
                     <td className="text-lg py-3 w-80 text-center uppercase">
-                      {status}
+                      {present}
                     </td>
-                    <td className="text-lg py-3 w-86 text-center uppercase">
-                      {time}
+                    <td className="text-lg py-3 w-80 text-center uppercase">
+                      {late}
+                    </td>
+                    <td className="text-lg py-3 w-80 text-center uppercase">
+                      {absent}
                     </td>
                   </tr>
                 )
@@ -166,27 +214,36 @@ const Print = ({ students, buttonHidden }) => {
                   Name
                 </td>
                 <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
-                  Status
+                  Present
                 </td>
                 <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
-                  Time
+                  Late
+                </td>
+                <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
+                  Absent
                 </td>
               </tr>
             </thead>
 
             <tbody>
               {female?.map(
-                ({ id, name, lastName, middleName, status, time }, i) => (
+                (
+                  { id, name, lastName, middleName, present, late, absent },
+                  i
+                ) => (
                   <tr className="border-b border-b-zinc-300" key={id}>
                     <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
                     <td className="text-lg py-3 w-96 text-center uppercase">
                       {`${lastName}, ${name} ${middleName}`}
                     </td>
                     <td className="text-lg py-3 w-80 text-center uppercase">
-                      {status}
+                      {present}
                     </td>
-                    <td className="text-lg py-3 w-86 text-center uppercase">
-                      {time}
+                    <td className="text-lg py-3 w-80 text-center uppercase">
+                      {late}
+                    </td>
+                    <td className="text-lg py-3 w-80 text-center uppercase">
+                      {absent}
                     </td>
                   </tr>
                 )
@@ -197,37 +254,37 @@ const Print = ({ students, buttonHidden }) => {
 
         {/* Smaller Screen Below */}
         <div className="flex flex-col gap-3.5 sm:hidden">
-          {students?.map(({ name, lastName, middleName, status, time }, i) => (
-            <div
-              className="bg-zinc-300 p-3 rounded-lg shadow-md flex flex-col gap-2.5"
-              key={i}
-            >
-              <h1 className="uppercase">
-                <b>Student No. : </b>
-                {i + 1}
-              </h1>
+          {weeklySummary.map(
+            ({ name, lastName, middleName, present, late, absent }, i) => (
+              <div
+                className="bg-zinc-300 p-3 rounded-lg shadow-md flex flex-col gap-2.5"
+                key={i}
+              >
+                <h1 className="uppercase">
+                  <b>Student No. : </b>
+                  {i + 1}
+                </h1>
 
-              <h1 className="uppercase">
-                <b>Name: </b>
-                {`${lastName}, ${name} ${middleName}`}
-              </h1>
-              <h1 className="uppercase">
-                <b>Status: </b>
-                {status}
-              </h1>
-              <h1 className="uppercase">
-                <b>Time: </b>
-                {time}
-              </h1>
-            </div>
-          ))}
+                <h1 className="uppercase">
+                  <b>Name: </b>
+                  {`${lastName}, ${name} ${middleName}`}
+                </h1>
+                <h1 className="uppercase">
+                  <b>Present: </b>
+                  {present}
+                </h1>
+                <h1 className="uppercase">
+                  <b>Late: </b>
+                  {late}
+                </h1>
+                <h1 className="uppercase">
+                  <b>Absent: </b>
+                  {absent}
+                </h1>
+              </div>
+            )
+          )}
         </div>
-        <Button
-          isGray={false}
-          btnText={"Save Attendance"}
-          handleBtnClick={saveAttendance}
-          buttonHidden={buttonHidden}
-        />
       </div>
 
       {/* Print Format */}
@@ -261,26 +318,35 @@ const Print = ({ students, buttonHidden }) => {
                   Name
                 </td>
                 <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
-                  Status
+                  Present
                 </td>
                 <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
-                  Time
+                  Late
+                </td>
+                <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
+                  Absent
                 </td>
               </tr>
             </thead>
             <tbody>
               {male?.map(
-                ({ id, name, lastName, middleName, status, time }, i) => (
+                (
+                  { id, name, lastName, middleName, present, late, absent },
+                  i
+                ) => (
                   <tr className="border-b border-b-zinc-300" key={id}>
                     <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
                     <td className="text-lg py-3 w-96 text-center uppercase">
                       {`${lastName}, ${name} ${middleName}`}
                     </td>
                     <td className="text-lg py-3 w-80 text-center uppercase">
-                      {status}
+                      {present}
                     </td>
-                    <td className="text-lg py-3 w-86 text-center uppercase">
-                      {time}
+                    <td className="text-lg py-3 w-80 text-center uppercase">
+                      {late}
+                    </td>
+                    <td className="text-lg py-3 w-80 text-center uppercase">
+                      {absent}
                     </td>
                   </tr>
                 )
@@ -289,7 +355,7 @@ const Print = ({ students, buttonHidden }) => {
           </table>
         </div>
 
-        <div className="mt-16">
+        <div className="hidden sm:block mt-16">
           <h1 className="text-slate-950 text-2xl font-header mb-3">Female</h1>
           <table>
             <thead>
@@ -301,27 +367,36 @@ const Print = ({ students, buttonHidden }) => {
                   Name
                 </td>
                 <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
-                  Status
+                  Present
                 </td>
                 <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
-                  Time
+                  Late
+                </td>
+                <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
+                  Absent
                 </td>
               </tr>
             </thead>
 
             <tbody>
               {female?.map(
-                ({ id, name, lastName, middleName, status, time }, i) => (
+                (
+                  { id, name, lastName, middleName, present, late, absent },
+                  i
+                ) => (
                   <tr className="border-b border-b-zinc-300" key={id}>
                     <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
                     <td className="text-lg py-3 w-96 text-center uppercase">
                       {`${lastName}, ${name} ${middleName}`}
                     </td>
                     <td className="text-lg py-3 w-80 text-center uppercase">
-                      {status}
+                      {present}
                     </td>
-                    <td className="text-lg py-3 w-86 text-center uppercase">
-                      {time}
+                    <td className="text-lg py-3 w-80 text-center uppercase">
+                      {late}
+                    </td>
+                    <td className="text-lg py-3 w-80 text-center uppercase">
+                      {absent}
                     </td>
                   </tr>
                 )
@@ -334,4 +409,4 @@ const Print = ({ students, buttonHidden }) => {
   );
 };
 
-export default Print;
+export default WeeklyReport;

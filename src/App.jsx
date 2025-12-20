@@ -10,6 +10,7 @@ import SignUp from "./pages/SignUp.jsx";
 import Section from "./components/Section.jsx";
 import AttendanceHistory from "./pages/AttendanceHistory.jsx";
 import PreviousAttendance from "./components/PreviousAttendance.jsx";
+import WeeklyReport from "./pages/WeeklyReport.jsx";
 
 const App = () => {
   return (
@@ -42,6 +43,7 @@ const App = () => {
           <Route path="students" element={<Students />}></Route>
           <Route path="attendance" element={<Attendance />} />
           <Route path="report" element={<Report />}></Route>
+          <Route path="weekly-report" element={<WeeklyReport />}></Route>
           <Route
             path="attendance-history"
             element={<AttendanceHistory />}

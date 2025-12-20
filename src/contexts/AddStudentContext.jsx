@@ -11,6 +11,7 @@ export const AddStudentContextProvider = ({ children }) => {
     const data = localStorage.getItem("currentSection");
     return data ? JSON.parse(data) : "";
   });
+  const [adviserName, setAdviserName] = useState("");
   // State Contexts
 
   const { user, setIsLoading } = useContext(AuthContext);
@@ -85,6 +86,8 @@ export const AddStudentContextProvider = ({ children }) => {
         getFilteredListData,
         studentsPerSection,
         setCurrentSection,
+        adviserName,
+        setAdviserName,
       }}
     >
       {children}

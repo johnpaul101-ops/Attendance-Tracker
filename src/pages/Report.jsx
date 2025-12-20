@@ -6,12 +6,12 @@ import AddStudentContext from "../contexts/AddStudentContext";
 import { useParams } from "react-router-dom";
 
 const Report = () => {
-  const [adviserName, setAdviserName] = useState("");
   const submitAttendanceReportInfo = () => {
     setAdviserName(adviser);
   };
   const [adviser, setAdviser] = useState("");
-  const { getStudentBySection } = useContext(AddStudentContext);
+  const { getStudentBySection, adviserName, setAdviserName } =
+    useContext(AddStudentContext);
   const { sectionId } = useParams();
   let students = getStudentBySection(sectionId);
 

@@ -31,6 +31,11 @@ const Sidebar = () => {
       icon: <HiOutlineDocumentReport />,
     },
     {
+      name: "Weekly Report",
+      path: "weekly-report",
+      icon: <HiOutlineDocumentReport />,
+    },
+    {
       name: "Attendance History",
       path: "attendance-history",
       icon: <GoHistory />,

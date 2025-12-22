@@ -4,7 +4,7 @@ import StudentInfoInput from "../components/StudentInfoInput";
 import Button from "../components/Button";
 import AddStudentContext from "../contexts/AddStudentContext";
 import { useParams } from "react-router-dom";
-
+import moment from "moment/moment";
 const Report = () => {
   const submitAttendanceReportInfo = () => {
     setAdviserName(adviser);
@@ -14,7 +14,7 @@ const Report = () => {
     useContext(AddStudentContext);
   const { sectionId } = useParams();
   let students = getStudentBySection(sectionId);
-
+  let date = moment().format("MMMM Do YYYY");
   return (
     <>
       <div className="flex flex-col   bg-white w-full lg:w-[80%] mb-12 p-4 lg:p-7 gap-9 rounded-lg shadow-md print:hidden ">
@@ -31,7 +31,7 @@ const Report = () => {
         />
       </div>
 
-      <Print students={students} adviserName={adviserName} />
+      <Print students={students} adviserName={adviserName} date={date} />
     </>
   );
 };

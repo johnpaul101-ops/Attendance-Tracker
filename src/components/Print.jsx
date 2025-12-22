@@ -9,10 +9,10 @@ import { addDoc, collection } from "firebase/firestore";
 import { db } from "../config/firebase";
 import AuthContext from "../contexts/AuthContext";
 import AddStudentContext from "../contexts/AddStudentContext";
-const Print = ({ students, buttonHidden }) => {
+const Print = ({ students, buttonHidden, date }) => {
   const { user, sections } = useContext(AuthContext);
   const { sectionId } = useParams();
-  let date = moment().format("MMMM Do YYYY");
+
   const { adviserName } = useContext(AddStudentContext);
   const currentSection = sections.filter((section) => section.id === sectionId);
   let male = students.filter((student) => student.gender === "male");

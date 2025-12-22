@@ -32,7 +32,13 @@ const PreviousAttendance = () => {
     return () => unsubscribe();
   }, [user, sectionId, attendanceId]);
 
-  return <Print buttonHidden={true} students={prevAttendance.students || []} />;
+  return (
+    <Print
+      buttonHidden={true}
+      students={prevAttendance.students || []}
+      date={prevAttendance.createdAt}
+    />
+  );
 };
 
 export default PreviousAttendance;

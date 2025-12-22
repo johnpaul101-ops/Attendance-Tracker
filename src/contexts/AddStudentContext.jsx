@@ -86,6 +86,7 @@ export const AddStudentContextProvider = ({ children }) => {
         getFilteredListData,
         studentsPerSection,
         setCurrentSection,
+        currentSection,
         adviserName,
         setAdviserName,
       }}

@@ -8,6 +8,7 @@ import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../config/firebase";
 import AuthContext from "../contexts/AuthContext";
 import AddStudentContext from "../contexts/AddStudentContext";
+
 const WeeklyReport = () => {
   const { user, sections } = useContext(AuthContext);
   const { sectionId } = useParams();
@@ -33,7 +34,7 @@ const WeeklyReport = () => {
       }));
 
       const startOfWeek = moment().startOf("week").add(1, "day");
-      const endOfWeek = moment().startOf("week").add(6, "day");
+      const endOfWeek = moment().endOf("week").subtract(1, "minute");
 
       const filteredDocs = currentWeekDocs.filter((doc) => {
         const attendanceDate = moment(doc.createdAt);

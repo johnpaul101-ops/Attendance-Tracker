@@ -1,6 +1,5 @@
 import { useContext, useEffect, useState } from "react";
 import { HiOutlineXMark } from "react-icons/hi2";
-import StudentInfoInput from "../components/StudentInfoInput";
 import Button from "../components/Button";
 import {
   addDoc,

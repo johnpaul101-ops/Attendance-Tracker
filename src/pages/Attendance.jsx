@@ -15,6 +15,7 @@ const Attendance = () => {
   let filteredList = getFilteredListData(sectionId);
 
   filteredList.sort((a, b) => a.lastName.localeCompare(b.lastName));
+
   const handleStatusChange = async (id, newStatus, newTime) => {
     try {
       await updateDoc(

@@ -1,5 +1,4 @@
 import Navbar from "./components/Navbar.jsx";
-
 import SectionsDashboard from "./pages/SectionsDashboard.jsx";
 
 const Dashboard = () => {

@@ -33,7 +33,7 @@ const WeeklyReport = () => {
         ...doc.data(),
       }));
 
-      const startOfWeek = moment().startOf("week").add(1, "day");
+      const startOfWeek = moment().startOf("week");
       const endOfWeek = moment().endOf("week").subtract(1, "minute");
 
       const filteredDocs = currentWeekDocs.filter((doc) => {

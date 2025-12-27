@@ -5,10 +5,11 @@ import { Link, useNavigate } from "react-router-dom";
 const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { signUpUser, user } = useContext(AuthContext);
   const [errorMessage, setErrorMessage] = useState("");
+  const { signUpUser } = useContext(AuthContext);
 
   let navigate = useNavigate();
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");

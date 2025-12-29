@@ -33,8 +33,11 @@ const WeeklyReport = () => {
         ...doc.data(),
       }));
 
-      const startOfWeek = moment().startOf("week");
-      const endOfWeek = moment().endOf("week").subtract(1, "minute");
+      const startOfWeek = moment().startOf("week").add(1, "day");
+      const endOfWeek = moment()
+        .endOf("week")
+        .add(1, "day")
+        .subtract(1, "minute");
 
       const filteredDocs = currentWeekDocs.filter((doc) => {
         const attendanceDate = moment(doc.createdAt);

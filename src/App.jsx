@@ -53,6 +53,7 @@ const App = () => {
             path="attendance-history/:attendanceId"
             element={<PreviousAttendance />}
           />
+          
         </Route>
       </Routes>
     </Router>

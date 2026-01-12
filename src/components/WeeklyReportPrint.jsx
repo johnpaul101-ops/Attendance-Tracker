@@ -1,73 +1,134 @@
 import { useContext } from "react";
 import { FaRegFileExcel } from "react-icons/fa";
-import Button from "../components/Button";
 import moment from "moment/moment";
 import { IoIosPrint } from "react-icons/io";
 import { useParams } from "react-router-dom";
 import * as XLSX from "xlsx";
-import { addDoc, collection } from "firebase/firestore";
+import { collection } from "firebase/firestore";
 import { db } from "../config/firebase";
 import AuthContext from "../contexts/AuthContext";
 import AddStudentContext from "../contexts/AddStudentContext";
+import Button from "../components/Button";
+import { addDoc } from "firebase/firestore";
 
-const Print = ({ students, buttonHidden, date }) => {
+const WeeklyReportPrint = ({ weeklyDocs, weeklySummary, buttonHidden }) => {
   const { user, sections } = useContext(AuthContext);
   const { sectionId } = useParams();
-
-  const { adviserName } = useContext(AddStudentContext);
+  let date = moment().format("MMMM Do YYYY");
   const currentSection = sections.filter((section) => section.id === sectionId);
-  let male = students.filter((student) => student.gender === "male");
-  let female = students.filter((student) => student.gender === "female");
+  const { adviserName } = useContext(AddStudentContext);
 
-  const formatStudentForExcel = students.map((student) => ({
-    id: student.id,
-    lastName: student.lastName,
-    name: student.name,
-    middleName: student.middleName,
-    gender: student.gender,
-    status: student.status,
-    time: student.time,
-    lastUpdated: student.lastUpdated,
-  }));
+  let male = weeklySummary.filter((stud) => stud.gender === "male");
+  let female = weeklySummary.filter((stud) => stud.gender === "female");
+
+  const getLetter = (status) => {
+    if (status === "present") return "P";
+    if (status === "late") return "T";
+    if (status === "absent") return "I";
+    return "";
+  };
+
+  const getDayKey = (date) => {
+    return new Date(date)
+      .toLocaleDateString("en-US", { weekday: "short" })
+      .toLowerCase();
+  };
+
+  let studentsMap = {};
+
+  weeklyDocs.forEach((doc) => {
+    const day = getDayKey(doc.createdAt);
+
+    doc.students.forEach((student) => {
+      if (!studentsMap[student.id]) {
+        studentsMap[student.id] = {
+          fullName:
+            `${student.lastName}, ${student.name} ${student.middleName}`.toUpperCase(),
+          attendance: {
+            mon: "",
+            tue: "",
+            wed: "",
+            thu: "",
+            fri: "",
+            sat: "",
+          },
+          totals: {
+            present: 0,
+            late: 0,
+            absent: 0,
+          },
+        };
+      }
+
+      const letter = getLetter(student.status);
+      studentsMap[student.id].attendance[day] = letter;
+
+      if (student.status === "present")
+        studentsMap[student.id].totals.present++;
+      if (student.status === "late") studentsMap[student.id].totals.late++;
+      if (student.status === "absent") studentsMap[student.id].totals.absent++;
+    });
+  });
+  let studentArray = Object.values(studentsMap);
+
+  studentArray.sort((a, b) => a.fullName.localeCompare(b.fullName));
 
   const exportToExcel = () => {
-    var wb = XLSX.utils.book_new(),
-      ws = XLSX.utils.json_to_sheet(formatStudentForExcel);
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([]);
 
-    ws["!cols"] = [
-      { wch: 25 },
-      { wch: 15 },
-      { wch: 12 },
-      { wch: 15 },
-      { wch: 15 },
-      { wch: 15 },
-      { wch: 15 },
-      { wch: 15 },
-    ];
     XLSX.utils.sheet_add_aoa(
       ws,
       [
         [
-          "Id",
-          "Last Name ",
-          "Name",
-          "Middle Name",
-          "Gender",
-          "Status",
-          "Time",
-          "Last Updated",
+          "#",
+          "NAME",
+          "MON",
+          "TUE",
+          "WED",
+          "THU",
+          "FRI",
+          "SAT",
+          "TOTAL PRESENT",
+          "TOTAL LATE",
+          "TOTAL ABSENT",
         ],
       ],
-      { origin: "A1" }
+      { origin: "A3" }
     );
-    XLSX.utils.book_append_sheet(wb, ws, "Attendance");
 
-    XLSX.writeFile(
-      wb,
-      `${currentSection.map(
-        (section) => section.sectionName
-      )} Daily Attendance.xlsx`
-    );
+    const rows = studentArray.map((s, i) => [
+      i + 1,
+      s.fullName,
+      s.attendance?.mon,
+      s.attendance?.tue,
+      s.attendance?.wed,
+      s.attendance?.thu,
+      s.attendance?.fri,
+      s.attendance?.sat,
+      s.totals.present,
+      s.totals.late,
+      s.totals.absent,
+    ]);
+
+    XLSX.utils.sheet_add_aoa(ws, rows, { origin: "A4" });
+
+    ws["!cols"] = [
+      { wch: 4 },
+      { wch: 45 },
+      { wch: 5 },
+      { wch: 5 },
+      { wch: 5 },
+      { wch: 5 },
+      { wch: 5 },
+      { wch: 5 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 15 },
+    ];
+
+    XLSX.utils.book_append_sheet(wb, ws, "Attendance");
+    XLSX.writeFile(wb, "attendance.xlsx");
   };
 
   const saveAttendance = async () => {
@@ -81,9 +142,10 @@ const Print = ({ students, buttonHidden, date }) => {
     );
 
     await addDoc(collectionRef, {
-      students: [...students],
-      typeOfAttendance: "Daily Attendance",
+      students: [...weeklySummary],
+      typeOfAttendance: "Weekly Attendance Report",
       createdAt: moment().format("YYYY-MM-DD"),
+      prevWeekDocs: [...weeklyDocs],
     });
   };
 
@@ -128,26 +190,35 @@ const Print = ({ students, buttonHidden, date }) => {
                   Name
                 </td>
                 <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
-                  Status
+                  Present
                 </td>
                 <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
-                  Time
+                  Late
+                </td>
+                <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
+                  Absent
                 </td>
               </tr>
             </thead>
             <tbody>
               {male?.map(
-                ({ id, name, lastName, middleName, status, time }, i) => (
+                (
+                  { id, name, lastName, middleName, present, late, absent },
+                  i
+                ) => (
                   <tr className="border-b border-b-zinc-300" key={id}>
                     <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
                     <td className="text-lg py-3 w-96 text-center uppercase">
                       {`${lastName}, ${name} ${middleName}`}
                     </td>
                     <td className="text-lg py-3 w-80 text-center uppercase">
-                      {status}
+                      {present}
                     </td>
-                    <td className="text-lg py-3 w-86 text-center uppercase">
-                      {time}
+                    <td className="text-lg py-3 w-80 text-center uppercase">
+                      {late}
+                    </td>
+                    <td className="text-lg py-3 w-80 text-center uppercase">
+                      {absent}
                     </td>
                   </tr>
                 )
@@ -168,27 +239,36 @@ const Print = ({ students, buttonHidden, date }) => {
                   Name
                 </td>
                 <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
-                  Status
+                  Present
                 </td>
                 <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
-                  Time
+                  Late
+                </td>
+                <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
+                  Absent
                 </td>
               </tr>
             </thead>
 
             <tbody>
               {female?.map(
-                ({ id, name, lastName, middleName, status, time }, i) => (
+                (
+                  { id, name, lastName, middleName, present, late, absent },
+                  i
+                ) => (
                   <tr className="border-b border-b-zinc-300" key={id}>
                     <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
                     <td className="text-lg py-3 w-96 text-center uppercase">
                       {`${lastName}, ${name} ${middleName}`}
                     </td>
                     <td className="text-lg py-3 w-80 text-center uppercase">
-                      {status}
+                      {present}
                     </td>
-                    <td className="text-lg py-3 w-86 text-center uppercase">
-                      {time}
+                    <td className="text-lg py-3 w-80 text-center uppercase">
+                      {late}
+                    </td>
+                    <td className="text-lg py-3 w-80 text-center uppercase">
+                      {absent}
                     </td>
                   </tr>
                 )
@@ -199,31 +279,38 @@ const Print = ({ students, buttonHidden, date }) => {
 
         {/* Smaller Screen Below */}
         <div className="flex flex-col gap-3.5 sm:hidden">
-          {students?.map(({ name, lastName, middleName, status, time }, i) => (
-            <div
-              className="bg-zinc-300 p-3 rounded-lg shadow-md flex flex-col gap-2.5"
-              key={i}
-            >
-              <h1 className="uppercase">
-                <b>Student No. : </b>
-                {i + 1}
-              </h1>
+          {weeklySummary.map(
+            ({ name, lastName, middleName, present, late, absent }, i) => (
+              <div
+                className="bg-zinc-300 p-3 rounded-lg shadow-md flex flex-col gap-2.5"
+                key={i}
+              >
+                <h1 className="uppercase">
+                  <b>Student No. : </b>
+                  {i + 1}
+                </h1>
 
-              <h1 className="uppercase">
-                <b>Name: </b>
-                {`${lastName}, ${name} ${middleName}`}
-              </h1>
-              <h1 className="uppercase">
-                <b>Status: </b>
-                {status}
-              </h1>
-              <h1 className="uppercase">
-                <b>Time: </b>
-                {time}
-              </h1>
-            </div>
-          ))}
+                <h1 className="uppercase">
+                  <b>Name: </b>
+                  {`${lastName}, ${name} ${middleName}`}
+                </h1>
+                <h1 className="uppercase">
+                  <b>Present: </b>
+                  {present}
+                </h1>
+                <h1 className="uppercase">
+                  <b>Late: </b>
+                  {late}
+                </h1>
+                <h1 className="uppercase">
+                  <b>Absent: </b>
+                  {absent}
+                </h1>
+              </div>
+            )
+          )}
         </div>
+
         <Button
           isGray={false}
           btnText={"Save Attendance"}
@@ -263,26 +350,35 @@ const Print = ({ students, buttonHidden, date }) => {
                   Name
                 </td>
                 <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
-                  Status
+                  Present
                 </td>
                 <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
-                  Time
+                  Late
+                </td>
+                <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
+                  Absent
                 </td>
               </tr>
             </thead>
             <tbody>
               {male?.map(
-                ({ id, name, lastName, middleName, status, time }, i) => (
+                (
+                  { id, name, lastName, middleName, present, late, absent },
+                  i
+                ) => (
                   <tr className="border-b border-b-zinc-300" key={id}>
                     <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
                     <td className="text-lg py-3 w-96 text-center uppercase">
                       {`${lastName}, ${name} ${middleName}`}
                     </td>
                     <td className="text-lg py-3 w-80 text-center uppercase">
-                      {status}
+                      {present}
                     </td>
-                    <td className="text-lg py-3 w-86 text-center uppercase">
-                      {time}
+                    <td className="text-lg py-3 w-80 text-center uppercase">
+                      {late}
+                    </td>
+                    <td className="text-lg py-3 w-80 text-center uppercase">
+                      {absent}
                     </td>
                   </tr>
                 )
@@ -291,7 +387,7 @@ const Print = ({ students, buttonHidden, date }) => {
           </table>
         </div>
 
-        <div className="mt-16">
+        <div className="hidden sm:block mt-16">
           <h1 className="text-slate-950 text-2xl font-header mb-3">Female</h1>
           <table>
             <thead>
@@ -303,27 +399,36 @@ const Print = ({ students, buttonHidden, date }) => {
                   Name
                 </td>
                 <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
-                  Status
+                  Present
                 </td>
                 <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
-                  Time
+                  Late
+                </td>
+                <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
+                  Absent
                 </td>
               </tr>
             </thead>
 
             <tbody>
               {female?.map(
-                ({ id, name, lastName, middleName, status, time }, i) => (
+                (
+                  { id, name, lastName, middleName, present, late, absent },
+                  i
+                ) => (
                   <tr className="border-b border-b-zinc-300" key={id}>
                     <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
                     <td className="text-lg py-3 w-96 text-center uppercase">
                       {`${lastName}, ${name} ${middleName}`}
                     </td>
                     <td className="text-lg py-3 w-80 text-center uppercase">
-                      {status}
+                      {present}
                     </td>
-                    <td className="text-lg py-3 w-86 text-center uppercase">
-                      {time}
+                    <td className="text-lg py-3 w-80 text-center uppercase">
+                      {late}
+                    </td>
+                    <td className="text-lg py-3 w-80 text-center uppercase">
+                      {absent}
                     </td>
                   </tr>
                 )
@@ -336,4 +441,4 @@ const Print = ({ students, buttonHidden, date }) => {
   );
 };
 
-export default Print;
+export default WeeklyReportPrint;

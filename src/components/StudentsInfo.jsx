@@ -12,13 +12,13 @@ const StudentsInfo = () => {
   const { sectionId } = useParams();
   let students = getStudentBySection(sectionId);
 
-  students.sort((a, b) => a.lastName.localeCompare(b.lastName));
+  students.sort((a, b) => a.fullName.localeCompare(b.fullName));
   let filteredList = getFilteredListData(sectionId);
 
   const handleRemoveStudent = async (id, name) => {
     if (confirm(`Are you sure you want to remove ${name} in this list?`)) {
       await deleteDoc(
-        doc(db, "users", user.uid, "sections", sectionId, "students", id)
+        doc(db, "users", user.uid, "sections", sectionId, "students", id),
       );
     }
   };
@@ -36,10 +36,10 @@ const StudentsInfo = () => {
         </thead>
 
         <tbody>
-          {filteredList?.map(({ name, middleName, lastName, gender, id }) => (
+          {filteredList?.map(({ fullName, gender, id }) => (
             <tr className="border-b border-b-zinc-300" key={id}>
               <td className="py-3 text-sm md:text-[1rem] text-zinc-600 capitalize">
-                {lastName}, {name} {middleName}
+                {fullName}
               </td>
               <td className="py-3 text-sm md:text-[1rem] text-zinc-600 capitalize">
                 {gender}
@@ -48,7 +48,7 @@ const StudentsInfo = () => {
               <td className="flex justify-center py-3">
                 <HiOutlineXMark
                   className="size-4 lg:size-6 cursor-pointer"
-                  onClick={() => handleRemoveStudent(id, name)}
+                  onClick={() => handleRemoveStudent(id, fullName)}
                 />
               </td>
             </tr>

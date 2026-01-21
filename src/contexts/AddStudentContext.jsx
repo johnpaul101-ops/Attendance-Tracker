@@ -34,7 +34,7 @@ export const AddStudentContextProvider = ({ children }) => {
       user.uid,
       "sections",
       currentSection,
-      "students"
+      "students",
     );
     const unsubscribe = onSnapshot(collectionRef, (snapshot) => {
       setStudentInfo((prev) => ({
@@ -53,22 +53,25 @@ export const AddStudentContextProvider = ({ children }) => {
   const getFilteredListData = (sectionId) => {
     const students = getStudentBySection(sectionId);
 
-    return students.filter((student) =>
-      `${student.lastName} ${student.name} ${student.middleName}`
-        .toLowerCase()
-        .includes(searchInput.toLowerCase())
-    );
+    return students.filter((student) => {
+      const fullName = `${student.fullName}`.toLowerCase().trim();
+      const status = `${student.status}`.toLowerCase().trim();
+      return (
+        fullName.includes(searchInput.toLowerCase()) ||
+        status.includes(searchInput.toLowerCase())
+      );
+    });
   };
 
   const totalStudents = studentsPerSection.length;
   const presentCount = studentsPerSection.filter(
-    (student) => student.status === "present"
+    (student) => student.status === "present",
   ).length;
   const lateCount = studentsPerSection.filter(
-    (student) => student.status === "late"
+    (student) => student.status === "late",
   ).length;
   const absentCount = studentsPerSection.filter(
-    (student) => student.status === "absent"
+    (student) => student.status === "absent",
   ).length;
 
   return (

@@ -13,7 +13,7 @@ const SearchInput = ({ isMobile }) => {
       />
       <input
         type="text"
-        placeholder="Search for student"
+        placeholder="Search for student or status"
         className={`bg-gray-200 text-md py-2.5 pl-9 w-0 ${
           expandSearch
             ? "w-[90%] transition-[width] ease-in duration-200 shadow-lg"
@@ -32,7 +32,7 @@ const SearchInput = ({ isMobile }) => {
       />
       <input
         type="text"
-        placeholder="Search for student"
+        placeholder="Search for student or status"
         className={`bg-gray-200 text-md py-2.5 pl-9 focus:outline-none rounded-lg w-64 focus:w-xl transition-[width] duration-400 ease-in-out`}
         value={searchInput}
         onChange={(e) => setSearchInput(e.target.value)}

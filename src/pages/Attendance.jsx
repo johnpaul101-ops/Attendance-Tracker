@@ -14,7 +14,7 @@ const Attendance = () => {
   const { user, isLoading } = useContext(AuthContext);
   let filteredList = getFilteredListData(sectionId);
 
-  filteredList.sort((a, b) => a.lastName.localeCompare(b.lastName));
+  filteredList.sort((a, b) => a.fullName.localeCompare(b.fullName));
 
   const handleStatusChange = async (id, newStatus, newTime) => {
     try {
@@ -23,7 +23,7 @@ const Attendance = () => {
         {
           status: newStatus,
           time: newTime,
-        }
+        },
       );
     } catch (error) {
       console.error(error);
@@ -37,7 +37,7 @@ const Attendance = () => {
       user.uid,
       "sections",
       sectionId,
-      "students"
+      "students",
     );
 
     const snapshot = await getDocs(studentsCol);
@@ -57,9 +57,9 @@ const Attendance = () => {
             "sections",
             sectionId,
             "students",
-            studentDoc.id
+            studentDoc.id,
           ),
-          { status: "late", time }
+          { status: "late", time },
         );
       }
     });
@@ -72,7 +72,7 @@ const Attendance = () => {
       user.uid,
       "sections",
       sectionId,
-      "students"
+      "students",
     );
 
     const snapshot = await getDocs(studentsRef);
@@ -90,12 +90,12 @@ const Attendance = () => {
             "sections",
             sectionId,
             "students",
-            studentDoc.id
+            studentDoc.id,
           ),
           {
             status: "none",
             lastUpdated: today,
-          }
+          },
         );
       }
     }
@@ -135,10 +135,10 @@ const Attendance = () => {
         </thead>
 
         <tbody>
-          {filteredList.map(({ id, name, lastName, middleName, status }) => (
+          {filteredList.map(({ id, fullName, status }) => (
             <tr className="border-b border-b-zinc-300" key={id}>
-              <td className="py-3 font-body-text text-zinc-600 lg:text-[16px] w-[60%] capitalize">
-                {lastName}, {name} {middleName}
+              <td className="py-3 font-body-text text-zinc-600 text-sm lg:text-[16px] w-[60%] capitalize">
+                {fullName}
               </td>
 
               <td className="py-3 text-center">

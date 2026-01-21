@@ -13,20 +13,25 @@ import AddStudentContext from "../contexts/AddStudentContext";
 const Print = ({ students, buttonHidden, date }) => {
   const { user, sections } = useContext(AuthContext);
   const { sectionId } = useParams();
-
   const { adviserName } = useContext(AddStudentContext);
   const currentSection = sections.filter((section) => section.id === sectionId);
   let male = students.filter((student) => student.gender === "male");
   let female = students.filter((student) => student.gender === "female");
 
+  students.sort((a, b) => a.fullName.localeCompare(b.fullName));
+
+  const getLetter = (status) => {
+    if (status === "present") return "P";
+    if (status === "late") return "T";
+    if (status === "absent") return "I";
+    return "";
+  };
+
   const formatStudentForExcel = students.map((student) => ({
-    id: student.id,
-    lastName: student.lastName,
-    name: student.name,
-    middleName: student.middleName,
-    gender: student.gender,
-    status: student.status,
-    time: student.time,
+    fullName: `${student.fullName}`.toUpperCase(),
+    gender: `${student.gender}`.toUpperCase(),
+    status: getLetter(student.status),
+    time: `${student.time}`.toUpperCase(),
     lastUpdated: student.lastUpdated,
   }));
 
@@ -35,10 +40,7 @@ const Print = ({ students, buttonHidden, date }) => {
       ws = XLSX.utils.json_to_sheet(formatStudentForExcel);
 
     ws["!cols"] = [
-      { wch: 25 },
-      { wch: 15 },
-      { wch: 12 },
-      { wch: 15 },
+      { wch: 40 },
       { wch: 15 },
       { wch: 15 },
       { wch: 15 },
@@ -46,27 +48,16 @@ const Print = ({ students, buttonHidden, date }) => {
     ];
     XLSX.utils.sheet_add_aoa(
       ws,
-      [
-        [
-          "Id",
-          "Last Name ",
-          "Name",
-          "Middle Name",
-          "Gender",
-          "Status",
-          "Time",
-          "Last Updated",
-        ],
-      ],
-      { origin: "A1" }
+      [["Name", "Gender", "Status", "Time", "Date"]],
+      { origin: "A1" },
     );
     XLSX.utils.book_append_sheet(wb, ws, "Attendance");
 
     XLSX.writeFile(
       wb,
       `${currentSection.map(
-        (section) => section.sectionName
-      )} Daily Attendance.xlsx`
+        (section) => section.sectionName,
+      )} Daily Attendance.xlsx`,
     );
   };
 
@@ -77,7 +68,7 @@ const Print = ({ students, buttonHidden, date }) => {
       user.uid,
       "sections",
       sectionId,
-      "attendance"
+      "attendance",
     );
 
     await addDoc(collectionRef, {
@@ -136,22 +127,20 @@ const Print = ({ students, buttonHidden, date }) => {
               </tr>
             </thead>
             <tbody>
-              {male?.map(
-                ({ id, name, lastName, middleName, status, time }, i) => (
-                  <tr className="border-b border-b-zinc-300" key={id}>
-                    <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
-                    <td className="text-lg py-3 w-96 text-center uppercase">
-                      {`${lastName}, ${name} ${middleName}`}
-                    </td>
-                    <td className="text-lg py-3 w-80 text-center uppercase">
-                      {status}
-                    </td>
-                    <td className="text-lg py-3 w-86 text-center uppercase">
-                      {time}
-                    </td>
-                  </tr>
-                )
-              )}
+              {male?.map(({ id, fullName, status, time }, i) => (
+                <tr className="border-b border-b-zinc-300" key={id}>
+                  <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
+                  <td className="text-lg py-3 w-96 text-center uppercase">
+                    {`${fullName}`}
+                  </td>
+                  <td className="text-lg py-3 w-80 text-center uppercase">
+                    {status}
+                  </td>
+                  <td className="text-lg py-3 w-86 text-center uppercase">
+                    {time}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -177,29 +166,27 @@ const Print = ({ students, buttonHidden, date }) => {
             </thead>
 
             <tbody>
-              {female?.map(
-                ({ id, name, lastName, middleName, status, time }, i) => (
-                  <tr className="border-b border-b-zinc-300" key={id}>
-                    <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
-                    <td className="text-lg py-3 w-96 text-center uppercase">
-                      {`${lastName}, ${name} ${middleName}`}
-                    </td>
-                    <td className="text-lg py-3 w-80 text-center uppercase">
-                      {status}
-                    </td>
-                    <td className="text-lg py-3 w-86 text-center uppercase">
-                      {time}
-                    </td>
-                  </tr>
-                )
-              )}
+              {female?.map(({ id, fullName, status, time }, i) => (
+                <tr className="border-b border-b-zinc-300" key={id}>
+                  <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
+                  <td className="text-lg py-3 w-96 text-center uppercase">
+                    {`${fullName}`}
+                  </td>
+                  <td className="text-lg py-3 w-80 text-center uppercase">
+                    {status}
+                  </td>
+                  <td className="text-lg py-3 w-86 text-center uppercase">
+                    {time}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
 
         {/* Smaller Screen Below */}
         <div className="flex flex-col gap-3.5 sm:hidden">
-          {students?.map(({ name, lastName, middleName, status, time }, i) => (
+          {students?.map(({ fullName, status, time }, i) => (
             <div
               className="bg-zinc-300 p-3 rounded-lg shadow-md flex flex-col gap-2.5"
               key={i}
@@ -211,7 +198,7 @@ const Print = ({ students, buttonHidden, date }) => {
 
               <h1 className="uppercase">
                 <b>Name: </b>
-                {`${lastName}, ${name} ${middleName}`}
+                {`${fullName}`}
               </h1>
               <h1 className="uppercase">
                 <b>Status: </b>
@@ -271,22 +258,20 @@ const Print = ({ students, buttonHidden, date }) => {
               </tr>
             </thead>
             <tbody>
-              {male?.map(
-                ({ id, name, lastName, middleName, status, time }, i) => (
-                  <tr className="border-b border-b-zinc-300" key={id}>
-                    <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
-                    <td className="text-lg py-3 w-96 text-center uppercase">
-                      {`${lastName}, ${name} ${middleName}`}
-                    </td>
-                    <td className="text-lg py-3 w-80 text-center uppercase">
-                      {status}
-                    </td>
-                    <td className="text-lg py-3 w-86 text-center uppercase">
-                      {time}
-                    </td>
-                  </tr>
-                )
-              )}
+              {male?.map(({ id, fullName, status, time }, i) => (
+                <tr className="border-b border-b-zinc-300" key={id}>
+                  <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
+                  <td className="text-lg py-3 w-96 text-center uppercase">
+                    {`${fullName}`}
+                  </td>
+                  <td className="text-lg py-3 w-80 text-center uppercase">
+                    {status}
+                  </td>
+                  <td className="text-lg py-3 w-86 text-center uppercase">
+                    {time}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -312,22 +297,20 @@ const Print = ({ students, buttonHidden, date }) => {
             </thead>
 
             <tbody>
-              {female?.map(
-                ({ id, name, lastName, middleName, status, time }, i) => (
-                  <tr className="border-b border-b-zinc-300" key={id}>
-                    <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
-                    <td className="text-lg py-3 w-96 text-center uppercase">
-                      {`${lastName}, ${name} ${middleName}`}
-                    </td>
-                    <td className="text-lg py-3 w-80 text-center uppercase">
-                      {status}
-                    </td>
-                    <td className="text-lg py-3 w-86 text-center uppercase">
-                      {time}
-                    </td>
-                  </tr>
-                )
-              )}
+              {female?.map(({ id, fullName, status, time }, i) => (
+                <tr className="border-b border-b-zinc-300" key={id}>
+                  <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
+                  <td className="text-lg py-3 w-96 text-center uppercase">
+                    {`${fullName}`}
+                  </td>
+                  <td className="text-lg py-3 w-80 text-center uppercase">
+                    {status}
+                  </td>
+                  <td className="text-lg py-3 w-86 text-center uppercase">
+                    {time}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

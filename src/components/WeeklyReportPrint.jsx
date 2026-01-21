@@ -11,10 +11,14 @@ import AddStudentContext from "../contexts/AddStudentContext";
 import Button from "../components/Button";
 import { addDoc } from "firebase/firestore";
 
-const WeeklyReportPrint = ({ weeklyDocs, weeklySummary, buttonHidden }) => {
+const WeeklyReportPrint = ({
+  weeklyDocs,
+  weeklySummary,
+  buttonHidden,
+  date,
+}) => {
   const { user, sections } = useContext(AuthContext);
   const { sectionId } = useParams();
-  let date = moment().format("MMMM Do YYYY");
   const currentSection = sections.filter((section) => section.id === sectionId);
   const { adviserName } = useContext(AddStudentContext);
 
@@ -42,8 +46,7 @@ const WeeklyReportPrint = ({ weeklyDocs, weeklySummary, buttonHidden }) => {
     doc.students.forEach((student) => {
       if (!studentsMap[student.id]) {
         studentsMap[student.id] = {
-          fullName:
-            `${student.lastName}, ${student.name} ${student.middleName}`.toUpperCase(),
+          fullName: `${student.fullName}`.toUpperCase(),
           attendance: {
             mon: "",
             tue: "",
@@ -57,6 +60,7 @@ const WeeklyReportPrint = ({ weeklyDocs, weeklySummary, buttonHidden }) => {
             late: 0,
             absent: 0,
           },
+          date,
         };
       }
 
@@ -92,9 +96,10 @@ const WeeklyReportPrint = ({ weeklyDocs, weeklySummary, buttonHidden }) => {
           "TOTAL PRESENT",
           "TOTAL LATE",
           "TOTAL ABSENT",
+          "DATE PRINTED",
         ],
       ],
-      { origin: "A3" }
+      { origin: "A3" },
     );
 
     const rows = studentArray.map((s, i) => [
@@ -109,6 +114,7 @@ const WeeklyReportPrint = ({ weeklyDocs, weeklySummary, buttonHidden }) => {
       s.totals.present,
       s.totals.late,
       s.totals.absent,
+      s.date,
     ]);
 
     XLSX.utils.sheet_add_aoa(ws, rows, { origin: "A4" });
@@ -125,11 +131,16 @@ const WeeklyReportPrint = ({ weeklyDocs, weeklySummary, buttonHidden }) => {
       { wch: 15 },
       { wch: 15 },
       { wch: 15 },
+      { wch: 25 },
     ];
 
-    XLSX.utils.book_append_sheet(wb, ws, "Attendance");
-    XLSX.writeFile(wb, "attendance.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Weekly Attendance");
+    XLSX.writeFile(
+      wb,
+      `${currentSection.map((section) => section.sectionName)} Weekly Attendance.xlsx`,
+    );
   };
+  1;
 
   const saveAttendance = async () => {
     const collectionRef = collection(
@@ -138,7 +149,7 @@ const WeeklyReportPrint = ({ weeklyDocs, weeklySummary, buttonHidden }) => {
       user.uid,
       "sections",
       sectionId,
-      "attendance"
+      "attendance",
     );
 
     await addDoc(collectionRef, {
@@ -201,28 +212,23 @@ const WeeklyReportPrint = ({ weeklyDocs, weeklySummary, buttonHidden }) => {
               </tr>
             </thead>
             <tbody>
-              {male?.map(
-                (
-                  { id, name, lastName, middleName, present, late, absent },
-                  i
-                ) => (
-                  <tr className="border-b border-b-zinc-300" key={id}>
-                    <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
-                    <td className="text-lg py-3 w-96 text-center uppercase">
-                      {`${lastName}, ${name} ${middleName}`}
-                    </td>
-                    <td className="text-lg py-3 w-80 text-center uppercase">
-                      {present}
-                    </td>
-                    <td className="text-lg py-3 w-80 text-center uppercase">
-                      {late}
-                    </td>
-                    <td className="text-lg py-3 w-80 text-center uppercase">
-                      {absent}
-                    </td>
-                  </tr>
-                )
-              )}
+              {male?.map(({ id, fullName, present, late, absent }, i) => (
+                <tr className="border-b border-b-zinc-300" key={id}>
+                  <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
+                  <td className="text-lg py-3 w-96 text-center uppercase">
+                    {`${fullName}`}
+                  </td>
+                  <td className="text-lg py-3 w-80 text-center uppercase">
+                    {present}
+                  </td>
+                  <td className="text-lg py-3 w-80 text-center uppercase">
+                    {late}
+                  </td>
+                  <td className="text-lg py-3 w-80 text-center uppercase">
+                    {absent}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -251,64 +257,57 @@ const WeeklyReportPrint = ({ weeklyDocs, weeklySummary, buttonHidden }) => {
             </thead>
 
             <tbody>
-              {female?.map(
-                (
-                  { id, name, lastName, middleName, present, late, absent },
-                  i
-                ) => (
-                  <tr className="border-b border-b-zinc-300" key={id}>
-                    <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
-                    <td className="text-lg py-3 w-96 text-center uppercase">
-                      {`${lastName}, ${name} ${middleName}`}
-                    </td>
-                    <td className="text-lg py-3 w-80 text-center uppercase">
-                      {present}
-                    </td>
-                    <td className="text-lg py-3 w-80 text-center uppercase">
-                      {late}
-                    </td>
-                    <td className="text-lg py-3 w-80 text-center uppercase">
-                      {absent}
-                    </td>
-                  </tr>
-                )
-              )}
+              {female?.map(({ id, fullName, present, late, absent }, i) => (
+                <tr className="border-b border-b-zinc-300" key={id}>
+                  <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
+                  <td className="text-lg py-3 w-96 text-center uppercase">
+                    {`${fullName}`}
+                  </td>
+                  <td className="text-lg py-3 w-80 text-center uppercase">
+                    {present}
+                  </td>
+                  <td className="text-lg py-3 w-80 text-center uppercase">
+                    {late}
+                  </td>
+                  <td className="text-lg py-3 w-80 text-center uppercase">
+                    {absent}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
 
         {/* Smaller Screen Below */}
         <div className="flex flex-col gap-3.5 sm:hidden">
-          {weeklySummary.map(
-            ({ name, lastName, middleName, present, late, absent }, i) => (
-              <div
-                className="bg-zinc-300 p-3 rounded-lg shadow-md flex flex-col gap-2.5"
-                key={i}
-              >
-                <h1 className="uppercase">
-                  <b>Student No. : </b>
-                  {i + 1}
-                </h1>
+          {weeklySummary.map(({ fullName, present, late, absent }, i) => (
+            <div
+              className="bg-zinc-300 p-3 rounded-lg shadow-md flex flex-col gap-2.5"
+              key={i}
+            >
+              <h1 className="uppercase">
+                <b>Student No. : </b>
+                {i + 1}
+              </h1>
 
-                <h1 className="uppercase">
-                  <b>Name: </b>
-                  {`${lastName}, ${name} ${middleName}`}
-                </h1>
-                <h1 className="uppercase">
-                  <b>Present: </b>
-                  {present}
-                </h1>
-                <h1 className="uppercase">
-                  <b>Late: </b>
-                  {late}
-                </h1>
-                <h1 className="uppercase">
-                  <b>Absent: </b>
-                  {absent}
-                </h1>
-              </div>
-            )
-          )}
+              <h1 className="uppercase">
+                <b>Name: </b>
+                {`${fullName}`}
+              </h1>
+              <h1 className="uppercase">
+                <b>Present: </b>
+                {present}
+              </h1>
+              <h1 className="uppercase">
+                <b>Late: </b>
+                {late}
+              </h1>
+              <h1 className="uppercase">
+                <b>Absent: </b>
+                {absent}
+              </h1>
+            </div>
+          ))}
         </div>
 
         <Button
@@ -361,28 +360,23 @@ const WeeklyReportPrint = ({ weeklyDocs, weeklySummary, buttonHidden }) => {
               </tr>
             </thead>
             <tbody>
-              {male?.map(
-                (
-                  { id, name, lastName, middleName, present, late, absent },
-                  i
-                ) => (
-                  <tr className="border-b border-b-zinc-300" key={id}>
-                    <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
-                    <td className="text-lg py-3 w-96 text-center uppercase">
-                      {`${lastName}, ${name} ${middleName}`}
-                    </td>
-                    <td className="text-lg py-3 w-80 text-center uppercase">
-                      {present}
-                    </td>
-                    <td className="text-lg py-3 w-80 text-center uppercase">
-                      {late}
-                    </td>
-                    <td className="text-lg py-3 w-80 text-center uppercase">
-                      {absent}
-                    </td>
-                  </tr>
-                )
-              )}
+              {male?.map(({ id, fullName, present, late, absent }, i) => (
+                <tr className="border-b border-b-zinc-300" key={id}>
+                  <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
+                  <td className="text-lg py-3 w-96 text-center uppercase">
+                    {`${fullName}`}
+                  </td>
+                  <td className="text-lg py-3 w-80 text-center uppercase">
+                    {present}
+                  </td>
+                  <td className="text-lg py-3 w-80 text-center uppercase">
+                    {late}
+                  </td>
+                  <td className="text-lg py-3 w-80 text-center uppercase">
+                    {absent}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -411,28 +405,23 @@ const WeeklyReportPrint = ({ weeklyDocs, weeklySummary, buttonHidden }) => {
             </thead>
 
             <tbody>
-              {female?.map(
-                (
-                  { id, name, lastName, middleName, present, late, absent },
-                  i
-                ) => (
-                  <tr className="border-b border-b-zinc-300" key={id}>
-                    <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
-                    <td className="text-lg py-3 w-96 text-center uppercase">
-                      {`${lastName}, ${name} ${middleName}`}
-                    </td>
-                    <td className="text-lg py-3 w-80 text-center uppercase">
-                      {present}
-                    </td>
-                    <td className="text-lg py-3 w-80 text-center uppercase">
-                      {late}
-                    </td>
-                    <td className="text-lg py-3 w-80 text-center uppercase">
-                      {absent}
-                    </td>
-                  </tr>
-                )
-              )}
+              {female?.map(({ id, fullName, present, late, absent }, i) => (
+                <tr className="border-b border-b-zinc-300" key={id}>
+                  <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
+                  <td className="text-lg py-3 w-96 text-center uppercase">
+                    {`${fullName}`}
+                  </td>
+                  <td className="text-lg py-3 w-80 text-center uppercase">
+                    {present}
+                  </td>
+                  <td className="text-lg py-3 w-80 text-center uppercase">
+                    {late}
+                  </td>
+                  <td className="text-lg py-3 w-80 text-center uppercase">
+                    {absent}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

@@ -7,9 +7,7 @@ import { db } from "../config/firebase";
 import { useParams } from "react-router-dom";
 
 const AddStudent = () => {
-  const [studentName, setStudentName] = useState("");
-  const [studentLastName, setStudentLastName] = useState("");
-  const [studentMiddleName, setStudentMiddleName] = useState("");
+  const [studentFullName, setStudentFullName] = useState("");
   const [studentGender, setStudentGender] = useState("");
   const { sectionId } = useParams();
   const { user, setIsLoading } = useContext(AuthContext);
@@ -19,35 +17,30 @@ const AddStudent = () => {
     user.uid,
     "sections",
     sectionId,
-    "students"
+    "students",
   );
 
   const handleAddStudent = async () => {
-    if (!studentName || !studentLastName || !studentGender) return;
+    let removeWhiteSpace = studentFullName.trim();
+    if (!removeWhiteSpace || !studentGender) return;
 
     try {
       await addDoc(collectionRef, {
-        name: studentName,
-        middleName: studentMiddleName,
-        lastName: studentLastName,
+        fullName: removeWhiteSpace,
         gender: studentGender,
         status: "none",
       });
     } catch (error) {
       console.error(error);
     } finally {
-      setStudentName("");
-      setStudentLastName("");
-      setStudentMiddleName("");
+      setStudentFullName("");
       setStudentGender("");
       setIsLoading(false);
     }
   };
 
   const handleClearInputs = () => {
-    setStudentName("");
-    setStudentLastName("");
-    setStudentMiddleName("");
+    setStudentFullName("");
     setStudentGender("");
   };
 
@@ -66,24 +59,10 @@ const AddStudent = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4.5">
             <StudentInfoInput
               type={"text"}
-              labelText={"First Name *"}
-              placeHolderText={"Enter Student First Name"}
-              value={studentName}
-              handleInputChange={(e) => setStudentName(e.target.value)}
-            />
-            <StudentInfoInput
-              type={"text"}
-              labelText={"Middle Name *"}
-              placeHolderText={"Enter Student Middle Name"}
-              value={studentMiddleName}
-              handleInputChange={(e) => setStudentMiddleName(e.target.value)}
-            />
-            <StudentInfoInput
-              type={"text"}
-              labelText={"Last Name *"}
-              placeHolderText={"Enter Student Last Name"}
-              value={studentLastName}
-              handleInputChange={(e) => setStudentLastName(e.target.value)}
+              labelText={"Full Name *"}
+              placeHolderText={"Enter Student Full Name"}
+              value={studentFullName}
+              handleInputChange={(e) => setStudentFullName(e.target.value)}
             />
 
             <div className="flex flex-col gap-2">

@@ -11,7 +11,7 @@ const WeeklyReport = () => {
   const { user } = useContext(AuthContext);
   const { sectionId } = useParams();
   const [weeklyDocs, setWeeklyDocs] = useState([]);
-
+  let date = moment().format("MMMM Do YYYY");
   useEffect(() => {
     if (!user || !sectionId) return;
 
@@ -21,7 +21,7 @@ const WeeklyReport = () => {
       user.uid,
       "sections",
       sectionId,
-      "attendance"
+      "attendance",
     );
 
     const unsubscribe = onSnapshot(collectionRef, (snapshot) => {
@@ -78,6 +78,7 @@ const WeeklyReport = () => {
     <WeeklyReportPrint
       weeklyDocs={weeklyReport}
       weeklySummary={weeklySummary}
+      date={date}
     />
   );
 };

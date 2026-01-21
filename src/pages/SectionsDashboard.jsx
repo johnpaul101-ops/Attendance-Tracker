@@ -27,7 +27,7 @@ const SectionsDashboard = () => {
     if (!user) return;
 
     const unsubscribe = onSnapshot(collectionRef, (snapshot) =>
-      setSections(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      setSections(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }))),
     );
 
     return () => unsubscribe();

@@ -21,7 +21,7 @@ const PreviousAttendance = () => {
       "sections",
       sectionId,
       "attendance",
-      attendanceId
+      attendanceId,
     );
 
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
@@ -46,6 +46,8 @@ const PreviousAttendance = () => {
       <WeeklyReportPrint
         weeklyDocs={prevAttendance.prevWeekDocs || []}
         weeklySummary={prevAttendance.students || []}
+        date={prevAttendance.createdAt}
+        buttonHidden={true}
       />
     );
   }

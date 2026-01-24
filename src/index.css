@@ -5,3 +5,8 @@
   --font-header: "Fraunces", serif;
   --font-body-text: "Work Sans", sans-serif;
 }
+
+@page {
+  size: A4;
+  margin: 10mm;
+}

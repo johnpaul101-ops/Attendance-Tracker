@@ -1,7 +1,13 @@
 import { useContext, useEffect } from "react";
 import AddStudentContext from "../contexts/AddStudentContext";
 import AttendanceContext from "../contexts/UIContext";
-import { collection, doc, getDocs, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDocs,
+  updateDoc,
+  writeBatch,
+} from "firebase/firestore";
 import { useParams } from "react-router-dom";
 import AuthContext from "../contexts/AuthContext";
 import { db } from "../config/firebase";
@@ -13,7 +19,7 @@ const Attendance = () => {
   const { sectionId } = useParams();
   const { user, isLoading } = useContext(AuthContext);
   let filteredList = getFilteredListData(sectionId);
-
+  const now = moment();
   filteredList.sort((a, b) => a.fullName.localeCompare(b.fullName));
 
   const handleStatusChange = async (id, newStatus, newTime) => {
@@ -31,6 +37,7 @@ const Attendance = () => {
   };
 
   const markLateStudents = async (sectionId) => {
+    if (!user?.uid) return;
     const studentsCol = collection(
       db,
       "users",
@@ -41,28 +48,22 @@ const Attendance = () => {
     );
 
     const snapshot = await getDocs(studentsCol);
-
-    const now = moment();
+    let haslate = false;
     const cutoff = moment().hour(7).minute(10).second(0);
+    const batch = writeBatch(db);
+    if (now.isBefore(cutoff)) return;
 
     snapshot.docs.forEach(async (studentDoc) => {
       const data = studentDoc.data();
 
       if (data.status === "none" && now.isAfter(cutoff)) {
-        await updateDoc(
-          doc(
-            db,
-            "users",
-            user.uid,
-            "sections",
-            sectionId,
-            "students",
-            studentDoc.id,
-          ),
-          { status: "late", time },
-        );
+        haslate = true;
+        batch.update(studentDoc.ref, { status: "late", time });
       }
     });
+    if (haslate) {
+      await batch.commit();
+    }
   };
 
   const resetAttendance = async (sectionId, user, db) => {
@@ -77,40 +78,28 @@ const Attendance = () => {
 
     const snapshot = await getDocs(studentsRef);
     const today = moment().format("YYYY-MM-DD");
-
-    for (const studentDoc of snapshot.docs) {
+    const batch = writeBatch(db);
+    let reset = false;
+    snapshot.docs.forEach((studentDoc) => {
       const data = studentDoc.data();
 
       if (data.lastUpdated !== today) {
-        await updateDoc(
-          doc(
-            db,
-            "users",
-            user.uid,
-            "sections",
-            sectionId,
-            "students",
-            studentDoc.id,
-          ),
-          {
-            status: "none",
-            lastUpdated: today,
-          },
-        );
+        reset = true;
+        batch.update(studentDoc.ref, {
+          status: "none",
+          lastUpdated: today,
+        });
       }
+    });
+    if (reset) {
+      await batch.commit();
     }
   };
 
   useEffect(() => {
     resetAttendance(sectionId, user, db);
-    const interval = setInterval(() => {
-      markLateStudents(sectionId);
-    }, 1000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
+    markLateStudents(sectionId);
+  }, [sectionId, user?.uid]);
 
   return (
     <div className="bg-white shadow-md rounded-xl p-3 md:p-6 w-full lg:w-[70%] flex flex-col min-h-screen">
@@ -146,7 +135,7 @@ const Attendance = () => {
                   type="radio"
                   name={`status_${id}`}
                   checked={status === "present"}
-                  className="size-6 bg-green-300"
+                  className="size-6 accent-green-700 cursor-pointer"
                   onChange={() => handleStatusChange(id, "present", time)}
                 />
               </td>
@@ -156,7 +145,7 @@ const Attendance = () => {
                   type="radio"
                   name={`status_${id}`}
                   checked={status === "late"}
-                  className="size-6 bg-green-300"
+                  className="size-6 accent-yellow-700 focus:outline-none cursor-pointer"
                   onChange={() => handleStatusChange(id, "late", time)}
                 />
               </td>
@@ -166,7 +155,7 @@ const Attendance = () => {
                   type="radio"
                   name={`status_${id}`}
                   checked={status === "absent"}
-                  className="size-6 bg-green-300"
+                  className="size-6 accent-red-500 cursor-pointer"
                   onChange={() => handleStatusChange(id, "absent", time)}
                 />
               </td>

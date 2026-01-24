@@ -6,7 +6,7 @@ const Dashboard = () => {
     <div className="w-full min-h-dvh flex flex-col bg-zinc-100 overflow-hidden">
       <Navbar />
 
-      <main className="w-full relative">
+      <main className="w-full relative mt-28">
         <SectionsDashboard />
       </main>
     </div>

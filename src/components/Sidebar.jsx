@@ -47,7 +47,7 @@ const Sidebar = () => {
 
   return (
     <>
-      <div className="w-80 hidden lg:block">
+      <div className="w-80 hidden lg:block print:hidden">
         <ul className="flex flex-col gap-3 w-full">
           {links.map((link) => (
             <Link
@@ -68,12 +68,12 @@ const Sidebar = () => {
 
       {/* Mobile Screen Sidebar */}
       <div
-        className={`w-screen h-screen bg-black/50 absolute 
-        ${toggleSidebar ? "block" : "hidden"} lg:hidden z-20`}
+        className={`w-screen h-screen bg-black/50 fixed 
+        ${toggleSidebar ? "block" : "hidden"} lg:hidden z-20 print:hidden top-28`}
         onClick={() => setToggleSidebar(false)}
       ></div>
       <div
-        className={`absolute top-0 transition-all duration-200 ease-in-out ${
+        className={`fixed top-28 transition-all duration-200 ease-in-out ${
           toggleSidebar ? "right-0" : "right-[-1000px]"
         } bg-white lg:hidden h-screen w-80 z-50`}
       >

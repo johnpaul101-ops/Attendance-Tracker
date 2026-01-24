@@ -19,7 +19,7 @@ const AttendanceHistory = () => {
       user.uid,
       "sections",
       sectionId,
-      "attendance"
+      "attendance",
     );
 
     const unsubscribe = onSnapshot(collectionRef, (snapshot) => {
@@ -27,7 +27,7 @@ const AttendanceHistory = () => {
         snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-        }))
+        })),
       );
     });
 
@@ -36,10 +36,10 @@ const AttendanceHistory = () => {
 
   const handleRemovePrevAttendance = async (id) => {
     await deleteDoc(
-      doc(db, "users", user.uid, "sections", sectionId, "attendance", id)
+      doc(db, "users", user.uid, "sections", sectionId, "attendance", id),
     );
   };
-  
+
   return (
     <div className="bg-white p-6 w-full min-h-[80vh] rounded-2xl shadow-lg">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">

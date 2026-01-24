@@ -52,6 +52,7 @@ export const AddStudentContextProvider = ({ children }) => {
 
   const getFilteredListData = (sectionId) => {
     const students = getStudentBySection(sectionId);
+    if (!searchInput) return students;
 
     return students.filter((student) => {
       const fullName = `${student.fullName}`.toLowerCase().trim();

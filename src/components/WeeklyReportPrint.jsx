@@ -8,15 +8,10 @@ import { collection } from "firebase/firestore";
 import { db } from "../config/firebase";
 import AuthContext from "../contexts/AuthContext";
 import AddStudentContext from "../contexts/AddStudentContext";
-import Button from "../components/Button";
 import { addDoc } from "firebase/firestore";
+import { CiSaveDown2 } from "react-icons/ci";
 
-const WeeklyReportPrint = ({
-  weeklyDocs,
-  weeklySummary,
-  buttonHidden,
-  date,
-}) => {
+const WeeklyReportPrint = ({ weeklyDocs, weeklySummary, date }) => {
   const { user, sections } = useContext(AuthContext);
   const { sectionId } = useParams();
   const currentSection = sections.filter((section) => section.id === sectionId);
@@ -96,10 +91,10 @@ const WeeklyReportPrint = ({
           "TOTAL PRESENT",
           "TOTAL LATE",
           "TOTAL ABSENT",
-          "DATE PRINTED",
+          "DATE",
         ],
       ],
-      { origin: "A3" },
+      { origin: "A1" },
     );
 
     const rows = studentArray.map((s, i) => [
@@ -117,7 +112,7 @@ const WeeklyReportPrint = ({
       s.date,
     ]);
 
-    XLSX.utils.sheet_add_aoa(ws, rows, { origin: "A4" });
+    XLSX.utils.sheet_add_aoa(ws, rows, { origin: "A2" });
 
     ws["!cols"] = [
       { wch: 4 },
@@ -140,7 +135,6 @@ const WeeklyReportPrint = ({
       `${currentSection.map((section) => section.sectionName)} Weekly Attendance.xlsx`,
     );
   };
-  1;
 
   const saveAttendance = async () => {
     const collectionRef = collection(
@@ -163,16 +157,31 @@ const WeeklyReportPrint = ({
   return (
     <>
       <div className="bg-white w-full lg:w-[80%] min-h-screen p-4 lg:p-7 rounded-lg shadow-md relative print:hidden flex flex-col gap-3.5">
-        <IoIosPrint
-          className="size-6 mb-10 absolute right-8 cursor-pointer"
-          onClick={() => window.print()}
-        />
-        <FaRegFileExcel
-          className="size-6 absolute right-19 cursor-pointer"
-          onClick={exportToExcel}
-        />
+        <div className="flex gap-5 self-center">
+          <div className="flex flex-col items-center gap-1.5 ">
+            <p className="text-xs">Print to PDF</p>
+            <IoIosPrint
+              className="size-6 cursor-pointer"
+              onClick={() => window.print()}
+            />
+          </div>
+          <div className="flex flex-col items-center gap-1.5 ">
+            <p className="text-xs">Print to Excel</p>
+            <FaRegFileExcel
+              className="size-6 cursor-pointer"
+              onClick={exportToExcel}
+            />
+          </div>
+          <div className="flex flex-col items-center gap-1.5 ">
+            <p className="text-xs">Save Attendance</p>
+            <CiSaveDown2
+              className="size-6 cursor-pointer"
+              onClick={saveAttendance}
+            />
+          </div>
+        </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-12 gap-4 mt-12 ">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-12 gap-4 mt-16">
           <div className="flex flex-col gap-2.5 text-center sm:text-start">
             <h1 className="font-bold uppercase">
               La Consolacion University Philippines
@@ -309,17 +318,10 @@ const WeeklyReportPrint = ({
             </div>
           ))}
         </div>
-
-        <Button
-          isGray={false}
-          btnText={"Save Attendance"}
-          handleBtnClick={saveAttendance}
-          buttonHidden={buttonHidden}
-        />
       </div>
 
       {/* Print Format */}
-      <div className="bg-white w-full h-[297mm] p-[10mm]  hidden print:block">
+      <div className="bg-white w-full min-h-screen p-[10mm]  hidden print:block">
         <div className="flex  justify-between mb-12">
           <div className="flex flex-col gap-2.5">
             <h1 className="font-bold uppercase">
@@ -342,19 +344,19 @@ const WeeklyReportPrint = ({
           <table>
             <thead>
               <tr className="border-b border-b-zinc-300">
-                <td className="text-lg pb-3 w-52 uppercase font-medium text-center">
+                <td className="text-sm pb-2 w-52 uppercase font-medium text-center">
                   Student No.
                 </td>
-                <td className="text-lg pb-3 w-96 uppercase font-medium text-center">
+                <td className="text-sm pb-2 w-96 uppercase font-medium text-center">
                   Name
                 </td>
-                <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
+                <td className="text-sm pb-2 w-80 uppercase font-medium text-center">
                   Present
                 </td>
-                <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
+                <td className="text-sm pb-2 w-80 uppercase font-medium text-center">
                   Late
                 </td>
-                <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
+                <td className="text-sm pb-2 w-80 uppercase font-medium text-center">
                   Absent
                 </td>
               </tr>
@@ -362,17 +364,17 @@ const WeeklyReportPrint = ({
             <tbody>
               {male?.map(({ id, fullName, present, late, absent }, i) => (
                 <tr className="border-b border-b-zinc-300" key={id}>
-                  <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
-                  <td className="text-lg py-3 w-96 text-center uppercase">
+                  <td className="text-sm py-2 w-52 text-center">{i + 1}</td>
+                  <td className="text-sm py-2 w-96 text-center uppercase">
                     {`${fullName}`}
                   </td>
-                  <td className="text-lg py-3 w-80 text-center uppercase">
+                  <td className="text-sm py-2 w-80 text-center uppercase">
                     {present}
                   </td>
-                  <td className="text-lg py-3 w-80 text-center uppercase">
+                  <td className="text-sm py-2 w-80 text-center uppercase">
                     {late}
                   </td>
-                  <td className="text-lg py-3 w-80 text-center uppercase">
+                  <td className="text-sm py-2 w-80 text-center uppercase">
                     {absent}
                   </td>
                 </tr>
@@ -386,19 +388,19 @@ const WeeklyReportPrint = ({
           <table>
             <thead>
               <tr className="border-b border-b-zinc-300">
-                <td className="text-lg pb-3 w-52 uppercase font-medium text-center">
+                <td className="text-sm pb-2 w-52 uppercase font-medium text-center">
                   Student No.
                 </td>
-                <td className="text-lg pb-3 w-96 uppercase font-medium text-center">
+                <td className="text-sm pb-2 w-96 uppercase font-medium text-center">
                   Name
                 </td>
-                <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
+                <td className="text-sm pb-2 w-80 uppercase font-medium text-center">
                   Present
                 </td>
-                <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
+                <td className="text-sm pb-2 w-80 uppercase font-medium text-center">
                   Late
                 </td>
-                <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
+                <td className="text-sm pb-2 w-80 uppercase font-medium text-center">
                   Absent
                 </td>
               </tr>
@@ -407,17 +409,17 @@ const WeeklyReportPrint = ({
             <tbody>
               {female?.map(({ id, fullName, present, late, absent }, i) => (
                 <tr className="border-b border-b-zinc-300" key={id}>
-                  <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
-                  <td className="text-lg py-3 w-96 text-center uppercase">
+                  <td className="text-sm py-2 w-52 text-center">{i + 1}</td>
+                  <td className="text-sm py-2 w-96 text-center uppercase">
                     {`${fullName}`}
                   </td>
-                  <td className="text-lg py-3 w-80 text-center uppercase">
+                  <td className="text-sm py-2 w-80 text-center uppercase">
                     {present}
                   </td>
-                  <td className="text-lg py-3 w-80 text-center uppercase">
+                  <td className="text-sm py-2 w-80 text-center uppercase">
                     {late}
                   </td>
-                  <td className="text-lg py-3 w-80 text-center uppercase">
+                  <td className="text-sm py-2 w-80 text-center uppercase">
                     {absent}
                   </td>
                 </tr>

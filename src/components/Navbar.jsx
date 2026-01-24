@@ -11,7 +11,7 @@ const Navbar = () => {
     useContext(AttendanceContext);
 
   return (
-    <nav className="w-screen h-28 p-5 md:p-10 shadow-md flex items-center justify-between print:hidden">
+    <nav className="w-screen h-28 p-5 md:p-10 shadow-md flex items-center justify-between print:hidden fixed z-50 bg-gray-100">
       <div className="flex gap-7 items-center">
         <div>
           <h1

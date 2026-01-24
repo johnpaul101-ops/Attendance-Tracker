@@ -1,6 +1,5 @@
 import { useContext } from "react";
 import { FaRegFileExcel } from "react-icons/fa";
-import Button from "../components/Button";
 import moment from "moment/moment";
 import { IoIosPrint } from "react-icons/io";
 import { useParams } from "react-router-dom";
@@ -9,8 +8,9 @@ import { addDoc, collection } from "firebase/firestore";
 import { db } from "../config/firebase";
 import AuthContext from "../contexts/AuthContext";
 import AddStudentContext from "../contexts/AddStudentContext";
+import { CiSaveDown2 } from "react-icons/ci";
 
-const Print = ({ students, buttonHidden, date }) => {
+const Print = ({ students, date }) => {
   const { user, sections } = useContext(AuthContext);
   const { sectionId } = useParams();
   const { adviserName } = useContext(AddStudentContext);
@@ -81,16 +81,31 @@ const Print = ({ students, buttonHidden, date }) => {
   return (
     <>
       <div className="bg-white w-full lg:w-[80%] min-h-screen p-4 lg:p-7 rounded-lg shadow-md relative print:hidden flex flex-col gap-3.5">
-        <IoIosPrint
-          className="size-6 mb-10 absolute right-8 cursor-pointer"
-          onClick={() => window.print()}
-        />
-        <FaRegFileExcel
-          className="size-6 absolute right-19 cursor-pointer"
-          onClick={exportToExcel}
-        />
+        <div className="flex gap-5 self-center">
+          <div className="flex flex-col items-center gap-1.5 ">
+            <p className="text-xs">Print to PDF</p>
+            <IoIosPrint
+              className="size-6 cursor-pointer"
+              onClick={() => window.print()}
+            />
+          </div>
+          <div className="flex flex-col items-center gap-1.5 ">
+            <p className="text-xs">Print to Excel</p>
+            <FaRegFileExcel
+              className="size-6 cursor-pointer"
+              onClick={exportToExcel}
+            />
+          </div>
+          <div className="flex flex-col items-center gap-1.5 ">
+            <p className="text-xs">Save Attendance</p>
+            <CiSaveDown2
+              className="size-6 cursor-pointer"
+              onClick={saveAttendance}
+            />
+          </div>
+        </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-12 gap-4 mt-12 ">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-12 gap-4 mt-16 ">
           <div className="flex flex-col gap-2.5 text-center sm:text-start">
             <h1 className="font-bold uppercase">
               La Consolacion University Philippines
@@ -211,17 +226,11 @@ const Print = ({ students, buttonHidden, date }) => {
             </div>
           ))}
         </div>
-        <Button
-          isGray={false}
-          btnText={"Save Attendance"}
-          handleBtnClick={saveAttendance}
-          buttonHidden={buttonHidden}
-        />
       </div>
 
       {/* Print Format */}
-      <div className="bg-white w-full h-[297mm] p-[10mm]  hidden print:block">
-        <div className="flex  justify-between mb-12">
+      <div className="bg-white w-full min-h-screen p-[10mm] hidden print:block">
+        <div className="flex justify-between mb-12">
           <div className="flex flex-col gap-2.5">
             <h1 className="font-bold uppercase">
               La Consolacion University Philippines
@@ -243,31 +252,34 @@ const Print = ({ students, buttonHidden, date }) => {
           <table>
             <thead>
               <tr className="border-b border-b-zinc-300">
-                <td className="text-lg pb-3 w-52 uppercase font-medium text-center">
+                <td className="text-xs pb-2 w-52 uppercase font-medium text-center">
                   Student No.
                 </td>
-                <td className="text-lg pb-3 w-96 uppercase font-medium text-center">
+                <td className="text-sm pb-2 w-96 uppercase font-medium text-center">
                   Name
                 </td>
-                <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
+                <td className="text-sm pb-2 w-80 uppercase font-medium text-center">
                   Status
                 </td>
-                <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
+                <td className="text-sm pb-2 w-80 uppercase font-medium text-center">
                   Time
                 </td>
               </tr>
             </thead>
             <tbody>
               {male?.map(({ id, fullName, status, time }, i) => (
-                <tr className="border-b border-b-zinc-300" key={id}>
-                  <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
-                  <td className="text-lg py-3 w-96 text-center uppercase">
+                <tr
+                  className="border-b border-b-zinc-300 print:break-inside-avoid"
+                  key={id}
+                >
+                  <td className="text-sm py-2 w-52 text-center">{i + 1}</td>
+                  <td className="text-sm py-2 w-96 text-center uppercase">
                     {`${fullName}`}
                   </td>
-                  <td className="text-lg py-3 w-80 text-center uppercase">
+                  <td className="text-sm py-2 w-80 text-center uppercase">
                     {status}
                   </td>
-                  <td className="text-lg py-3 w-86 text-center uppercase">
+                  <td className="text-sm py-2 w-86 text-center uppercase">
                     {time}
                   </td>
                 </tr>
@@ -281,16 +293,16 @@ const Print = ({ students, buttonHidden, date }) => {
           <table>
             <thead>
               <tr className="border-b border-b-zinc-300">
-                <td className="text-lg pb-3 w-52 uppercase font-medium text-center">
+                <td className="text-sm pb-3 w-52 uppercase font-medium text-center">
                   Student No.
                 </td>
-                <td className="text-lg pb-3 w-96 uppercase font-medium text-center">
+                <td className="text-sm pb-3 w-96 uppercase font-medium text-center">
                   Name
                 </td>
-                <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
+                <td className="text-sm pb-3 w-80 uppercase font-medium text-center">
                   Status
                 </td>
-                <td className="text-lg pb-3 w-80 uppercase font-medium text-center">
+                <td className="text-sm pb-3 w-80 uppercase font-medium text-center">
                   Time
                 </td>
               </tr>
@@ -298,15 +310,18 @@ const Print = ({ students, buttonHidden, date }) => {
 
             <tbody>
               {female?.map(({ id, fullName, status, time }, i) => (
-                <tr className="border-b border-b-zinc-300" key={id}>
-                  <td className="text-lg py-3 w-52 text-center">{i + 1}</td>
-                  <td className="text-lg py-3 w-96 text-center uppercase">
+                <tr
+                  className="border-b border-b-zinc-300 print:break-inside-avoid"
+                  key={id}
+                >
+                  <td className="text-sm py-2 w-52 text-center">{i + 1}</td>
+                  <td className="text-sm py-2 w-96 text-center uppercase">
                     {`${fullName}`}
                   </td>
-                  <td className="text-lg py-3 w-80 text-center uppercase">
+                  <td className="text-sm py-2 w-80 text-center uppercase">
                     {status}
                   </td>
-                  <td className="text-lg py-3 w-86 text-center uppercase">
+                  <td className="text-sm py-2 w-86 text-center uppercase">
                     {time}
                   </td>
                 </tr>

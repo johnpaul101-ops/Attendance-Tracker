@@ -36,7 +36,6 @@ const PreviousAttendance = () => {
   if (prevAttendance.typeOfAttendance === "Daily Attendance") {
     return (
       <Print
-        buttonHidden={true}
         students={prevAttendance.students || []}
         date={prevAttendance.createdAt}
       />
@@ -47,7 +46,6 @@ const PreviousAttendance = () => {
         weeklyDocs={prevAttendance.prevWeekDocs || []}
         weeklySummary={prevAttendance.students || []}
         date={prevAttendance.createdAt}
-        buttonHidden={true}
       />
     );
   }

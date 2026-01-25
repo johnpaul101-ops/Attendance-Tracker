@@ -15,12 +15,12 @@ import moment from "moment/moment";
 import Loading from "../components/Loading";
 const Attendance = () => {
   const { getFilteredListData } = useContext(AddStudentContext);
-  const { time } = useContext(AttendanceContext);
   const { sectionId } = useParams();
   const { user, isLoading } = useContext(AuthContext);
   let filteredList = getFilteredListData(sectionId);
   const now = moment();
   filteredList.sort((a, b) => a.fullName.localeCompare(b.fullName));
+  let time = moment().format("h:mm:ss a");
 
   const handleStatusChange = async (id, newStatus, newTime) => {
     try {
@@ -36,71 +36,69 @@ const Attendance = () => {
     }
   };
 
-  const markLateStudents = async (sectionId) => {
-    if (!user?.uid) return;
-    const studentsCol = collection(
-      db,
-      "users",
-      user.uid,
-      "sections",
-      sectionId,
-      "students",
-    );
-
-    const snapshot = await getDocs(studentsCol);
-    let haslate = false;
-    const cutoff = moment().hour(7).minute(10).second(0);
-    const batch = writeBatch(db);
-    if (now.isBefore(cutoff)) return;
-
-    snapshot.docs.forEach(async (studentDoc) => {
-      const data = studentDoc.data();
-
-      if (data.status === "none" && now.isAfter(cutoff)) {
-        haslate = true;
-        batch.update(studentDoc.ref, { status: "late", time });
-      }
-    });
-    if (haslate) {
-      await batch.commit();
-    }
-  };
-
-  const resetAttendance = async (sectionId, user, db) => {
-    const studentsRef = collection(
-      db,
-      "users",
-      user.uid,
-      "sections",
-      sectionId,
-      "students",
-    );
-
-    const snapshot = await getDocs(studentsRef);
-    const today = moment().format("YYYY-MM-DD");
-    const batch = writeBatch(db);
-    let reset = false;
-    snapshot.docs.forEach((studentDoc) => {
-      const data = studentDoc.data();
-
-      if (data.lastUpdated !== today) {
-        reset = true;
-        batch.update(studentDoc.ref, {
-          status: "none",
-          lastUpdated: today,
-        });
-      }
-    });
-    if (reset) {
-      await batch.commit();
-    }
-  };
-
   useEffect(() => {
-    resetAttendance(sectionId, user, db);
-    markLateStudents(sectionId);
-  }, [sectionId, user?.uid]);
+    if (!sectionId || !user.uid) return;
+    const cutoff = moment().hour(7).minute(0).second(0);
+    if (now.isBefore(cutoff)) return;
+    const markLateStudents = async () => {
+      const studentsCol = collection(
+        db,
+        "users",
+        user.uid,
+        "sections",
+        sectionId,
+        "students",
+      );
 
+      const snapshot = await getDocs(studentsCol);
+      let haslate = false;
+      const batch = writeBatch(db);
+
+      snapshot.docs.forEach(async (studentDoc) => {
+        const data = studentDoc.data();
+
+        if (data.status === "none") {
+          haslate = true;
+          batch.update(studentDoc.ref, { status: "late", time });
+        }
+      });
+      if (haslate) {
+        await batch.commit();
+      }
+    };
+
+    const resetAttendance = async () => {
+      const studentsRef = collection(
+        db,
+        "users",
+        user.uid,
+        "sections",
+        sectionId,
+        "students",
+      );
+
+      const today = moment().format("YYYY-MM-DD");
+      const snapshot = await getDocs(studentsRef);
+      const batch = writeBatch(db);
+      let reset = false;
+      snapshot.docs.forEach((studentDoc) => {
+        const data = studentDoc.data();
+
+        if (data.lastUpdated !== today) {
+          reset = true;
+          batch.update(studentDoc.ref, {
+            status: "none",
+            lastUpdated: today,
+          });
+        }
+      });
+      if (reset) {
+        await batch.commit();
+      }
+    };
+    markLateStudents();
+    resetAttendance();
+  }, [sectionId, user?.uid]);
   return (
     <div className="bg-white shadow-md rounded-xl p-3 md:p-6 w-full lg:w-[70%] flex flex-col min-h-screen">
       {isLoading ? <Loading /> : ""}

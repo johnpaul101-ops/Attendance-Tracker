@@ -13,13 +13,8 @@ import { IoIosArrowBack } from "react-icons/io";
 const Home = () => {
   let date = moment().format("MMMM Do YYYY");
   const { time } = useContext(AttendanceContext);
-  const {
-    totalStudents,
-    presentCount,
-    lateCount,
-    absentCount,
-    setCurrentSection,
-  } = useContext(AddStudentContext);
+  const { total, present, late, absent, setCurrentSection } =
+    useContext(AddStudentContext);
   const { sectionId } = useParams();
 
   useEffect(() => {
@@ -50,25 +45,25 @@ const Home = () => {
         <StudentsStatusCard
           icon={<PiStudent className="size-9" />}
           bgColor={"bg-blue-300"}
-          totalNum={totalStudents}
+          totalNum={total}
           status={"Total Students"}
         />
         <StudentsStatusCard
           icon={<IoCheckboxOutline className="size-9" />}
           bgColor={"bg-green-300"}
-          totalNum={presentCount}
+          totalNum={present}
           status={"Present Today"}
         />
         <StudentsStatusCard
           icon={<TfiFaceSad className="size-9" />}
           bgColor={"bg-red-400"}
-          totalNum={absentCount}
+          totalNum={absent}
           status={"Absent Today"}
         />
         <StudentsStatusCard
           icon={<MdOutlineAssignmentLate className="size-9" />}
           bgColor={"bg-yellow-200"}
-          totalNum={lateCount}
+          totalNum={late}
           status={"Late Today"}
         />
       </div>

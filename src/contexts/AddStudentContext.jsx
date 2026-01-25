@@ -1,4 +1,11 @@
-import { createContext, useState, useEffect, useContext } from "react";
+import {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+  useMemo,
+} from "react";
 import AuthContext from "./AuthContext";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../config/firebase";
@@ -15,9 +22,12 @@ export const AddStudentContextProvider = ({ children }) => {
   // State Contexts
 
   const { user, setIsLoading } = useContext(AuthContext);
-  const getStudentBySection = (sectionId) => {
-    return studentInfo[sectionId] || [];
-  };
+  const getStudentBySection = useCallback(
+    (sectionId) => {
+      return studentInfo[sectionId] || [];
+    },
+    [studentInfo],
+  );
   let studentsPerSection = getStudentBySection(currentSection) || [];
 
   useEffect(() => {
@@ -50,40 +60,42 @@ export const AddStudentContextProvider = ({ children }) => {
     return () => unsubscribe();
   }, [user, currentSection]);
 
-  const getFilteredListData = (sectionId) => {
-    const students = getStudentBySection(sectionId);
-    if (!searchInput) return students;
+  const getFilteredListData = useCallback(
+    (sectionId) => {
+      const students = getStudentBySection(sectionId);
+      if (!searchInput) return students;
 
-    return students.filter((student) => {
-      const fullName = `${student.fullName}`.toLowerCase().trim();
-      const status = `${student.status}`.toLowerCase().trim();
-      return (
-        fullName.includes(searchInput.toLowerCase()) ||
-        status.includes(searchInput.toLowerCase())
-      );
-    });
-  };
+      return students.filter((student) => {
+        const fullName = `${student.fullName}`.toLowerCase().trim();
+        const status = `${student.status}`.toLowerCase().trim();
+        return (
+          fullName.includes(searchInput.toLowerCase()) ||
+          status.includes(searchInput.toLowerCase())
+        );
+      });
+    },
+    [studentInfo, searchInput],
+  );
 
-  const totalStudents = studentsPerSection.length;
-  const presentCount = studentsPerSection.filter(
-    (student) => student.status === "present",
-  ).length;
-  const lateCount = studentsPerSection.filter(
-    (student) => student.status === "late",
-  ).length;
-  const absentCount = studentsPerSection.filter(
-    (student) => student.status === "absent",
-  ).length;
+  const stats = useMemo(() => {
+    return {
+      total: studentsPerSection.length,
+      present: studentsPerSection.filter((s) => s.status === "present").length,
+      late: studentsPerSection.filter((s) => s.status === "late").length,
+      absent: studentsPerSection.filter((s) => s.status === "absent").length,
+    };
+  }, [studentsPerSection]);
 
+  const { total, present, late, absent } = stats;
   return (
     <AddStudentContext.Provider
       value={{
         studentInfo,
         setStudentInfo,
-        presentCount,
-        lateCount,
-        absentCount,
-        totalStudents,
+        present,
+        late,
+        absent,
+        total,
         searchInput,
         setSearchInput,
         getStudentBySection,

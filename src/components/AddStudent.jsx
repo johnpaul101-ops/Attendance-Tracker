@@ -30,6 +30,7 @@ const AddStudent = () => {
     if (!removeWhiteSpace || !studentGender) return;
 
     try {
+      setIsLoading(true);
       await addDoc(collectionRef, {
         fullName: removeWhiteSpace,
         gender: studentGender,

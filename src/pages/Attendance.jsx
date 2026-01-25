@@ -38,8 +38,6 @@ const Attendance = () => {
 
   useEffect(() => {
     if (!sectionId || !user.uid) return;
-    const cutoff = moment().hour(7).minute(0).second(0);
-    if (now.isBefore(cutoff)) return;
     const markLateStudents = async () => {
       const studentsCol = collection(
         db,
@@ -49,6 +47,8 @@ const Attendance = () => {
         sectionId,
         "students",
       );
+      const cutoff = moment().hour(7).minute(0).second(0);
+      if (now.isBefore(cutoff)) return;
 
       const snapshot = await getDocs(studentsCol);
       let haslate = false;

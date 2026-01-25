@@ -195,7 +195,7 @@ const AddStudent = () => {
         </div>
       </div>
       <div
-        className={`w-full h-screen bg-black/75 absolute -top-33 right-0 z-50 ${refImage ? "flex" : "hidden"} items-center justify-center`}
+        className={`w-full h-screen bg-black/75 fixed top-0 right-0 z-50 ${refImage ? "flex" : "hidden"} items-center justify-center`}
       >
         <HiOutlineXMark
           size={40}

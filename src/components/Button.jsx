@@ -8,7 +8,7 @@ const Button = ({ handleBtnClick, isGray, btnText, buttonHidden }) => {
           : "bg-green-400 text-white hover:bg-green-400/70"
       } p-3.5 cursor-pointer rounded-lg text-lg transition-all duration-200 ease-in-out ${
         buttonHidden ? "hidden" : ""
-      }`}
+      } active:bg-black/25`}
     >
       {btnText}
     </button>

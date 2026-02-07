@@ -161,21 +161,21 @@ const WeeklyReportPrint = ({ weeklyDocs, weeklySummary, date }) => {
           <div className="flex flex-col items-center gap-1.5 ">
             <p className="text-xs">Print to PDF</p>
             <IoIosPrint
-              className="size-6 cursor-pointer"
+              className="size-6 cursor-pointer active:bg-black/55 active:scale-125"
               onClick={() => window.print()}
             />
           </div>
           <div className="flex flex-col items-center gap-1.5 ">
             <p className="text-xs">Print to Excel</p>
             <FaRegFileExcel
-              className="size-6 cursor-pointer"
+              className="size-6 cursor-pointer active:bg-black/55 active:scale-125"
               onClick={exportToExcel}
             />
           </div>
           <div className="flex flex-col items-center gap-1.5 ">
             <p className="text-xs">Save Attendance</p>
             <CiSaveDown2
-              className="size-6 cursor-pointer"
+              className="size-6 cursor-pointer active:bg-black/55 active:scale-125"
               onClick={saveAttendance}
             />
           </div>

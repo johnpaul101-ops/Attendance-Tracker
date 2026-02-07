@@ -68,6 +68,7 @@ const AddStudent = () => {
     });
 
     setStudentsList(normalizedData);
+    setFileName("");
   };
 
   const handleBulkUpload = async () => {

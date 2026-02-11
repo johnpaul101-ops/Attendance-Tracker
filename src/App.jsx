@@ -11,6 +11,7 @@ import Section from "./components/Section.jsx";
 import AttendanceHistory from "./pages/AttendanceHistory.jsx";
 import PreviousAttendance from "./components/PreviousAttendance.jsx";
 import WeeklyReport from "./pages/WeeklyReport.jsx";
+import MonthlySummary from "./pages/MonthlySummary.jsx";
 
 const App = () => {
   return (
@@ -44,6 +45,7 @@ const App = () => {
           <Route path="attendance" element={<Attendance />} />
           <Route path="report" element={<Report />}></Route>
           <Route path="weekly-report" element={<WeeklyReport />}></Route>
+          <Route path="monthly-summary" element={<MonthlySummary />}></Route>
           <Route
             path="attendance-history"
             element={<AttendanceHistory />}
@@ -53,7 +55,6 @@ const App = () => {
             path="attendance-history/:attendanceId"
             element={<PreviousAttendance />}
           />
-          
         </Route>
       </Routes>
     </Router>

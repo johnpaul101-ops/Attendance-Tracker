@@ -7,6 +7,7 @@ import AttendanceContext from "../contexts/UIContext";
 import { PiStudent } from "react-icons/pi";
 import SignOutButton from "./SignOutButton";
 import { GoHistory } from "react-icons/go";
+import { TbCalendarMonth } from "react-icons/tb";
 
 const Sidebar = () => {
   const links = [
@@ -34,6 +35,11 @@ const Sidebar = () => {
       name: "Weekly Report",
       path: "weekly-report",
       icon: <HiOutlineDocumentReport />,
+    },
+    {
+      name: "Monthly Summary",
+      path: "monthly-summary",
+      icon: <TbCalendarMonth />,
     },
     {
       name: "Attendance History",

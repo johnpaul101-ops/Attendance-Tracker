@@ -4,11 +4,11 @@ import moment from "moment/moment";
 import { IoIosPrint } from "react-icons/io";
 import { useParams } from "react-router-dom";
 import * as XLSX from "xlsx";
-import { collection } from "firebase/firestore";
+import { collection, doc } from "firebase/firestore";
 import { db } from "../config/firebase";
 import AuthContext from "../contexts/AuthContext";
 import AddStudentContext from "../contexts/AddStudentContext";
-import { addDoc } from "firebase/firestore";
+import { addDoc, writeBatch } from "firebase/firestore";
 import { CiSaveDown2 } from "react-icons/ci";
 
 const WeeklyReportPrint = ({ weeklyDocs, weeklySummary, date }) => {
@@ -152,6 +152,67 @@ const WeeklyReportPrint = ({ weeklyDocs, weeklySummary, date }) => {
       createdAt: moment().format("YYYY-MM-DD"),
       prevWeekDocs: [...weeklyDocs],
     });
+    const monthId = moment().format("YYYY-MM");
+    const batch = writeBatch(db);
+
+    const monthRef = doc(
+      db,
+      "users",
+      user.uid,
+      "sections",
+      sectionId,
+      "attendance_monthly",
+      monthId,
+    );
+
+    batch.set(
+      monthRef,
+      {
+        updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+        monthLabel: moment().format("MMMM YYYY"),
+      },
+      { merge: true },
+    );
+
+    const weekKey = `week_${Math.ceil(moment().date() / 7)}`;
+
+    weeklySummary.forEach((student) => {
+      const studentId = student.id;
+      const monthlyRef = doc(
+        db,
+        "users",
+        user.uid,
+        "sections",
+        sectionId,
+        "attendance_monthly",
+        monthId,
+        "students",
+        studentId,
+      );
+
+      const currentAttendance = studentsMap[studentId].attendance;
+
+      batch.set(
+        monthlyRef,
+        {
+          name: student.fullName,
+
+          attendance: {
+            [weekKey]: {
+              mon: currentAttendance.mon || "",
+              tue: currentAttendance.tue || "",
+              wed: currentAttendance.wed || "",
+              thu: currentAttendance.thu || "",
+              fri: currentAttendance.fri || "",
+              sat: currentAttendance.sat || "",
+            },
+          },
+        },
+        { merge: true },
+      );
+    });
+
+    await batch.commit();
   };
 
   return (

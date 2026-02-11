@@ -243,7 +243,10 @@ const MonthlySummary = () => {
               className={`absolute bg-white p-4 top-15 -left-33 sm:left-10 shadow-xl w-48 rounded-xl ${selectMonth ? "block" : "hidden"}`}
             >
               {savedMonths.map(({ id, monthLabel }) => (
-                <div className="flex gap-4 border-b-black border-b-2 pb-3">
+                <div
+                  className="flex gap-4 border-b-black border-b-2 pb-3"
+                  key={id}
+                >
                   <label htmlFor="radio">{monthLabel}</label>
                   <input
                     type="radio"

@@ -103,6 +103,7 @@ const MonthlySummary = () => {
   });
 
   let studentArray = Object.values(studentsMap);
+  studentArray.sort((a, b) => a.name.localeCompare(b.name));
 
   const exportToExcel = () => {
     const wb = XLSX.utils.book_new();

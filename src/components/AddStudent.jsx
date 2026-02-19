@@ -68,7 +68,6 @@ const AddStudent = () => {
     });
 
     setStudentsList(normalizedData);
-    setFileName("");
   };
 
   const handleBulkUpload = async () => {
@@ -94,6 +93,7 @@ const AddStudent = () => {
       setFileName("");
     }
   };
+
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-14 bg-white p-4 md:p-6 shadow-md rounded-xl">

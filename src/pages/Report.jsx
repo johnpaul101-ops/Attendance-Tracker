@@ -8,10 +8,16 @@ import moment from "moment/moment";
 const Report = () => {
   const submitAttendanceReportInfo = () => {
     setAdviserName(adviser);
+    setInstitutionName(institution);
   };
   const [adviser, setAdviser] = useState("");
-  const { getStudentBySection, adviserName, setAdviserName } =
-    useContext(AddStudentContext);
+  const [institution, setInstitution] = useState("");
+  const {
+    getStudentBySection,
+    adviserName,
+    setAdviserName,
+    setInstitutionName,
+  } = useContext(AddStudentContext);
   const { sectionId } = useParams();
   let students = getStudentBySection(sectionId);
   let date = moment().format("MMMM Do YYYY");
@@ -25,6 +31,13 @@ const Report = () => {
           placeHolderText={"Enter your adviser name"}
           value={adviser}
           handleInputChange={(e) => setAdviser(e.target.value)}
+        />
+        <StudentInfoInput
+          type={"text"}
+          labelText={"Organization Name *"}
+          placeHolderText={"Enter organization name"}
+          value={institution}
+          handleInputChange={(e) => setInstitution(e.target.value)}
         />
         <Button
           btnText={"Submit"}

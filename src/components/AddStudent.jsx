@@ -110,7 +110,7 @@ const AddStudent = () => {
               <StudentInfoInput
                 type={"text"}
                 labelText={"Full Name *"}
-                placeHolderText={"Enter Student Full Name"}
+                placeHolderText={"Enter Full Name"}
                 value={studentFullName}
                 handleInputChange={(e) => setStudentFullName(e.target.value)}
               />

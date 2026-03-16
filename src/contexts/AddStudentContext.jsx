@@ -19,6 +19,7 @@ export const AddStudentContextProvider = ({ children }) => {
     return data ? JSON.parse(data) : "";
   });
   const [adviserName, setAdviserName] = useState("");
+  const [institutionName, setInstitutionName] = useState("");
   // State Contexts
 
   const { user, setIsLoading } = useContext(AuthContext);
@@ -105,6 +106,8 @@ export const AddStudentContextProvider = ({ children }) => {
         currentSection,
         adviserName,
         setAdviserName,
+        institutionName,
+        setInstitutionName,
       }}
     >
       {children}

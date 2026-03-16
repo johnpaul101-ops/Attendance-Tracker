@@ -6,6 +6,7 @@ import {
   memoryLocalCache,
   persistentLocalCache,
 } from "firebase/firestore";
+
 const firebaseConfig = {
   apiKey: "AIzaSyCS4Tic4Blm9_8EurGxzWfqj4lVLGzwzPQ",
   authDomain: "attendance-tracker-175c1.firebaseapp.com",
@@ -29,7 +30,7 @@ export const db = (() => {
   } catch (err) {
     console.warn(
       "Persistence conflict detected, falling back to memory cache:",
-      err.message
+      err.message,
     );
     return initializeFirestore(app, {
       localCache: memoryLocalCache(),

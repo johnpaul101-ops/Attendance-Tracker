@@ -13,7 +13,7 @@ import { CiSaveDown2 } from "react-icons/ci";
 const Print = ({ students, date }) => {
   const { user, sections } = useContext(AuthContext);
   const { sectionId } = useParams();
-  const { adviserName } = useContext(AddStudentContext);
+  const { adviserName, institutionName } = useContext(AddStudentContext);
   const currentSection = sections.filter((section) => section.id === sectionId);
   let male = students.filter((student) => student.gender === "male");
   let female = students.filter((student) => student.gender === "female");
@@ -108,7 +108,7 @@ const Print = ({ students, date }) => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-12 gap-4 mt-16 ">
           <div className="flex flex-col gap-2.5 text-center sm:text-start">
             <h1 className="font-bold uppercase">
-              La Consolacion University Philippines
+              Organization: {institutionName}
             </h1>
             {currentSection.map((section) => (
               <h1 className="font-bold uppercase" key={section.id}>

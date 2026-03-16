@@ -15,7 +15,7 @@ const WeeklyReportPrint = ({ weeklyDocs, weeklySummary, date }) => {
   const { user, sections } = useContext(AuthContext);
   const { sectionId } = useParams();
   const currentSection = sections.filter((section) => section.id === sectionId);
-  const { adviserName } = useContext(AddStudentContext);
+  const { adviserName, institutionName } = useContext(AddStudentContext);
 
   let male = weeklySummary.filter((stud) => stud.gender === "male");
   let female = weeklySummary.filter((stud) => stud.gender === "female");
@@ -245,7 +245,7 @@ const WeeklyReportPrint = ({ weeklyDocs, weeklySummary, date }) => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-12 gap-4 mt-16">
           <div className="flex flex-col gap-2.5 text-center sm:text-start">
             <h1 className="font-bold uppercase">
-              La Consolacion University Philippines
+              Organization: {institutionName}
             </h1>
             {currentSection.map((section) => (
               <h1 className="font-bold uppercase" key={section.id}>
